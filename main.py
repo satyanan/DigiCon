@@ -9,6 +9,8 @@ import requests
 import json
 import cv2 as cv
 import numpy as np
+from docx import Document
+from docx.shared import Inches
 
 def setupLogging():
     logger = logging.getLogger()
@@ -54,7 +56,7 @@ def azureCVDispProcessing(analysis, image_path):
     for polygon in polygons:
         vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
         text     = polygon[1]
-        cv.fillPoly(img, pts=np.int32([vertices]), color=(255,255,255))
+        cv.fillPoly(img, pts=np.int32([vertices]), color=(0,255,0))
         cv.putText(img, text, vertices[0], cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 1 , cv.CV_AA)
     cv.imwrite( "./temp/azureCVDispProcessing.jpg", img)
     qimg = cv.cvtColor(img, cv.cv.CV_BGR2RGB)#for Qt display
@@ -82,7 +84,7 @@ def azureHandwriting(image_path):
     vision_base_url = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/"
     text_recognition_url = vision_base_url + "RecognizeText"
 
-    # When using image in disk
+    # using image in disk
     image_data = open(image_path, "rb").read()
     headers    = {'Ocp-Apim-Subscription-Key': subscription_key, 
               "Content-Type": "application/octet-stream" }
@@ -133,11 +135,6 @@ class Window(QtGui.QMainWindow):
         logging.debug('Image opened')
 
         img = azureHandwriting(image_path)
-        # #Converting Mat to Qtimage and displaying
-        # qimg = QtGui.QImage(img.data,img.shape[1], img.shape[0], QtGui.QImage.Format_RGB888)
-        # qpm = QtGui.QPixmap.fromImage(qimg)
-        # self.lbl.setPixmap(qpm)
-
         self.lbl.setPixmap(QtGui.QPixmap("./temp/azureCVDispProcessing.jpg"))
 
         logging.debug('azured image displayed')
