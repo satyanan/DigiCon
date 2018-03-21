@@ -9,8 +9,13 @@ import requests
 import json
 import cv2 as cv
 import numpy as np
-from docx import Document
-from docx.shared import Inches
+# from docx import Document
+# from docx.shared import Inches
+from reportlab.pdfgen import canvas
+
+
+# pdf.cell(200,10,'Powered by FPDF',0,1,'C')
+
 
 def setupLogging():
     logger = logging.getLogger()
@@ -53,14 +58,30 @@ def azureCVDispProcessing(analysis, image_path):
     img_path = str(image_path)
     print(img_path)
     img = cv.imread(img_path)
+    height, width, channels = img.shape
+    bg_img = img
+    for polygon in polygons:
+        vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
+        cv.fillPoly(bg_img, pts=np.int32([vertices]), color=(0,255,0))
+    cv.imwrite('./temp/bg_img.jpg',bg_img)
+    c.drawImage('./temp/bg_img.jpg',0,0)    
     for polygon in polygons:
         vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
         text     = polygon[1]
-        cv.fillPoly(img, pts=np.int32([vertices]), color=(0,255,0))
+        # print vertices
+        min_x = min(vertices, key = lambda t: t[0])[0]
+        min_y = min(vertices, key = lambda t: t[1])[1]
+        max_x = max(vertices, key = lambda t: t[0])[0]
+        max_y = max(vertices, key = lambda t: t[1])[1]
+        # print min_x,min_y,max_x,max_y
+        # cv.fillPoly(img, pts=np.int32([vertices]), color=(0,255,0))
+        cv.rectangle(img,(min_x,min_y),(max_x,max_y),(0,255,0),cv.cv.CV_FILLED)
         cv.putText(img, text, vertices[0], cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 1 , cv.CV_AA)
+        c.drawString(min_x,height-(min_y+max_y)/2,text)
     cv.imwrite( "./temp/azureCVDispProcessing.jpg", img)
     qimg = cv.cvtColor(img, cv.cv.CV_BGR2RGB)#for Qt display
     logging.debug('Image with ROI saved')
+    c.save()
     return qimg
 
 def azureDispProcessing(analysis, image_path):
@@ -145,4 +166,5 @@ def run():
     GUI = Window()
     sys.exit(app.exec_())
 
+c = canvas.Canvas("test.pdf")
 run()
