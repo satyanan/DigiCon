@@ -99,3 +99,10 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+#temp files
+temp/
+*.jpg
+
+#vscode config
+.vscode/
