@@ -119,11 +119,19 @@ def imageAzureHandwriting(image_path):
     qimg = azureCVDispProcessing(analysis=analysis, image_path=image_path)
     return qimg, analysis
 
-def imageDenoising():
-    pass
+def imageDenoising(img):
+    img= cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+    return img
 
-def imageBinarization():
-    pass
+def imageBinarization(img):
+    # global thresholding
+    ret1,th1 = cv.threshold(img,127,255,cv.THRESH_BINARY)
+    # Otsu's thresholding
+    ret2,th2 = cv.threshold(img,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+    # Otsu's thresholding after Gaussian filtering
+    blur = cv.GaussianBlur(img,(3,3),0)
+    ret3,th3 = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+    return th3
 
 def imageLOTDetection():
     pass
@@ -170,12 +178,15 @@ class Window(QtGui.QMainWindow):
         self.setGeometry(50, 50, 1024, 768)
         self.setWindowTitle("DigiCon")
 
-        self.progressBar = QtGui.QProgressBar(self)
-        self.progressBar.setGeometry(QtCore.QRect(20, 20, 1024, 30))
-        self.progressBar.setRange(0,1024)
-        self.progressBar.setProperty("value", 1)
-        self.progressBar.move(0,500)
-        self.progressBar.setVisible(False)
+        self.lbl = QtGui.QLabel(self)
+        self.setCentralWidget(self.lbl)
+        
+        self.lbl.progressBar = QtGui.QProgressBar(self)
+        self.lbl.progressBar.setGeometry(QtCore.QRect(20, 20, 1024, 30))
+        self.lbl.progressBar.setRange(0,1024)
+        self.lbl.progressBar.setProperty("value", 1)
+        self.lbl.progressBar.move(0,500)
+        self.lbl.progressBar.setVisible(False)
 
         openFile = QtGui.QAction("&File", self)
         openFile.setShortcut("Ctrl+O")
@@ -187,8 +198,7 @@ class Window(QtGui.QMainWindow):
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(openFile)
 
-        # self.lbl = QtGui.QLabel(self)
-        # self.setCentralWidget(self.lbl)
+        
 
         self.home()
 
@@ -212,52 +222,63 @@ class Window(QtGui.QMainWindow):
         logging.debug('Image path is' + self.image_path)
 
         self.open_btn.setVisible(False)
-        self.progressBar.setVisible(True)
+        self.lbl.progressBar.setVisible(True)
         self.process_btn.setVisible(True)
 
     def progressBarUpdate(self):
-        self.progressBar.setValue(self.progressBarCurrent)
+        self.lbl.progressBar.setValue(self.progressBarCurrent)
         self.progressBarCurrent += self.progressBarIncrement
-        self.progressBar.repaint()
+        self.lbl.progressBar.repaint()
 
-    def imageSeqHandler(self, cvImg):
+    def imageSeqHandler(self, _cvImg):
+        if(len(_cvImg.shape) == 2):
+            cvImg = cv.cvtColor(_cvImg, cv.COLOR_GRAY2RGB)
+        else:
+            cvImg = _cvImg
         height, width, channel = cvImg.shape
         bytesPerLine = channel*3 #Error prone in case of binarized images
         qImg = QtGui.QImage(cvImg, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-        self.imageSeq.append(QtGui.QPixmap(qImg))
+        # self.imageSeq.append(QtGui.QPixmap(qImg))
+        self.imageSeq.append(cvImg)
+    def processingStepsHandler(self, cvImg):
+        self.imageSeqHandler(cvImg)
+        self.progressBarUpdate()
 
     def processImage(self):
-        self.progressBarIncrement = 1024/7
+        self.progressBarIncrement = 1024/8
         self.progressBarCurrent = self.progressBarIncrement
 
         virginImg = cv.imread(str(self.image_path))
-        self.imageSeqHandler(virginImg)
-        denoisedImg = imageDenoising()
-        self.progressBarUpdate()
-        binarisedImg = imageBinarization()
-        self.progressBarUpdate()
+        self.processingStepsHandler(virginImg)
+        denoisedImg = imageDenoising(virginImg)
+        self.processingStepsHandler(denoisedImg)
+        binarisedImg = imageBinarization(denoisedImg)
+        self.processingStepsHandler(binarisedImg)
         LOTDetectedImg = imageLOTDetection()
-        self.progressBarUpdate()
+        self.processingStepsHandler(binarisedImg)
         wordROIDetectedImg = imageWordROIDetection()
-        self.progressBarUpdate()
+        self.processingStepsHandler(binarisedImg)
         NNWordDetectedImg = imageNNWordDetection()
-        self.progressBarUpdate()
+        self.processingStepsHandler(binarisedImg)
         wordSpellcorrectedImg = imageWordSpellcorrection()
-        self.progressBarUpdate()
+        self.processingStepsHandler(binarisedImg)
         azuredImg, azureAnalysis = imageAzureHandwriting(self.image_path)
-        self.imageSeqHandler(azuredImg)
-        self.progressBarUpdate()
+        self.processingStepsHandler(azuredImg)
 
         wordROIList = imageWordToList(azureAnalysis, virginImg)
         self.processingComplete = True
-        # self.lbl.setPixmap(QtGui.QPixmap("./temp/azureCVDispProcessing.jpg"))
+        self.lbl.setPixmap(QtGui.QPixmap("./test.jpg"))
+        self.adjustSize()
 
         self.process_btn.setVisible(False)
-        self.progressBar.setVisible(False)
+        self.lbl.progressBar.setVisible(False)
 
     def dispalyHandler(self):
-        pass
-        # self.setPixmap(self.imageSeq[currentSeq])
+        print("display handler called")
+        cv.imwrite("./temp/res.jpg",self.imageSeq[self.currentSeq])
+        self.lbl.setPixmap(QtGui.QPixmap("./temp/res.jpg"))
+        self.lbl.repaint()
+        self.adjustSize()
     
     def leftKeyHandler(self):
         if(self.processingComplete == False):
@@ -270,17 +291,17 @@ class Window(QtGui.QMainWindow):
     def rightKeyHandler(self):
         if(self.processingComplete == False):
             return
-        if(self.currentSeq == len(self.imageSeq)):
+        if(self.currentSeq == len(self.imageSeq)-1):
             return
         self.currentSeq += 1
         self.dispalyHandler()
         
     def keyPressEvent(self, event):
-        print("keyPressEvent happened")
-        if event.key() == QtCore.Qt.Key_Left:
+        print("keyPressEvent happened",self.currentSeq, len(self.imageSeq))
+        if event.key() == QtCore.Qt.Key_P:
             logging.info("Left key pressed")
             self.leftKeyHandler()
-        elif event.key() == QtCore.Qt.Key_Right:
+        elif event.key() == QtCore.Qt.Key_N:
             logging.info("Right key pressed")
             self.rightKeyHandler()
         event.accept()
