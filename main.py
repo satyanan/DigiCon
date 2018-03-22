@@ -117,7 +117,7 @@ def imageAzureHandwriting(image_path):
         analysis       = response_final.json()
         time.sleep(1)
     qimg = azureCVDispProcessing(analysis=analysis, image_path=image_path)
-    return qimg
+    return qimg, analysis
 
 def imageDenoising():
     pass
@@ -136,7 +136,29 @@ def imageNNWordDetection():
 
 def imageWordSpellcorrection():
     pass
-
+def imageWordToList(analysis, binarisedImg):
+    wordROIList = []
+    polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
+    # img_path = str(image_path)
+    # print(img_path)
+    # img = cv.imread(img_path)
+    height, width, channels = binarisedImg.shape
+    print height, width, channels
+    # c.drawImage('./temp/bg_img.jpg',0,0)    
+    for polygon in polygons:
+        vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
+        text     = polygon[1]
+        min_x = min(vertices, key = lambda t: t[0])[0]
+        min_y = min(vertices, key = lambda t: t[1])[1]
+        max_x = max(vertices, key = lambda t: t[0])[0]
+        max_y = max(vertices, key = lambda t: t[1])[1]
+        roi = binarisedImg[min_y:max_y,min_x:max_x]
+        wordROIList.append(roi)
+        # cv.imshow("dsdsd",roi )
+        # cv.waitKey(0)
+    return wordROIList
+    # cv.imwrite( "./temp/azureCVDispProcessing.jpg", img)
+    
 class Window(QtGui.QMainWindow):
     image_path = ''
     imageSeq = []
@@ -222,9 +244,11 @@ class Window(QtGui.QMainWindow):
         self.progressBarUpdate()
         wordSpellcorrectedImg = imageWordSpellcorrection()
         self.progressBarUpdate()
-        azuredImg = imageAzureHandwriting(self.image_path)
+        azuredImg, azureAnalysis = imageAzureHandwriting(self.image_path)
         self.imageSeqHandler(azuredImg)
         self.progressBarUpdate()
+
+        wordROIList = imageWordToList(azureAnalysis, virginImg)
         self.processingComplete = True
         # self.lbl.setPixmap(QtGui.QPixmap("./temp/azureCVDispProcessing.jpg"))
 
