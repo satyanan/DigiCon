@@ -11,6 +11,7 @@ import json
 import cv2 as cv
 import numpy as np
 from reportlab.pdfgen import canvas
+import qdarkstyle
 
 
 # pdf.cell(200,10,'Powered by FPDF',0,1,'C')
@@ -125,10 +126,20 @@ def azureHandwriting(image_path):
 
 class Window(QtGui.QMainWindow):
     image_path = ''
+    # progressBar = None
     def __init__(self):
         super(Window, self).__init__()
-        self.setGeometry(50, 50, 500, 300)
-        self.setWindowTitle("PyQT Show Image")
+        self.setGeometry(50, 50, 1024, 768)
+        self.setWindowTitle("DigiCon")
+
+        self.centralwidget = QtGui.QWidget(self)
+        # self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+        self.pb = QtGui.QProgressBar(self.centralwidget)
+        self.pb.setGeometry(QtCore.QRect(20, 20, 3001, 301))
+        self.pb.setRange(0,1000)
+        self.pb.setProperty("value", 10)
+        self.pb.move(10,10)
+        # self.pb.setObjectName(_fromUtf8("pb"))
 
         openFile = QtGui.QAction("&File", self)
         openFile.setShortcut("Ctrl+O")
@@ -140,12 +151,20 @@ class Window(QtGui.QMainWindow):
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(openFile)
 
-        self.lbl = QtGui.QLabel(self)
-        self.setCentralWidget(self.lbl)
+        # self.lbl = QtGui.QLabel(self)
+        # self.setCentralWidget(self.lbl)
 
         self.home()
 
     def home(self):
+        # progressBar = QtGui.QProgressBar()
+        # progressBar.setMinimum(1)
+        # progressBar.setMaximum(100)
+        # progressBar.setValue(50)
+        # progressBar.move(100,100)
+        # progressBar.resize(100,100)
+        # progressBar.repaint()
+
         process_btn = QtGui.QPushButton("Process", self)
         process_btn.clicked.connect(lambda: self.processImage(process_btn))
         process_btn.resize(100,100)
@@ -181,6 +200,7 @@ class Window(QtGui.QMainWindow):
 def run():
     setupLogging()
     app = QtGui.QApplication(sys.argv)
+    # app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
     GUI = Window()
     sys.exit(app.exec_())
 
