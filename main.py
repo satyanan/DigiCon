@@ -99,7 +99,7 @@ def azureDispProcessing(analysis, image_path):
     plt.show(block=False)
     logging.debug('Image with ROI saved')
 
-def azureHandwriting(image_path):
+def imageAzureHandwriting(image_path):
     subscription_key = "00c800bde4fe46b7b36fc42aba617e6b"
     assert subscription_key
     vision_base_url = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/"
@@ -122,24 +122,37 @@ def azureHandwriting(image_path):
         time.sleep(1)
     qimg = azureCVDispProcessing(analysis=analysis, image_path=image_path)
     return qimg
-    
+def imageDenoising():
+    pass
+
+def imageBinarization():
+    pass
+
+def imageLOTDetection():
+    pass
+
+def imageWordROIDetection():
+    pass
+
+def imageNNWordDetection():
+    pass
+
+def imageWordSpellcorrection():
+    pass
 
 class Window(QtGui.QMainWindow):
     image_path = ''
-    # progressBar = None
     def __init__(self):
         super(Window, self).__init__()
         self.setGeometry(50, 50, 1024, 768)
         self.setWindowTitle("DigiCon")
 
-        self.centralwidget = QtGui.QWidget(self)
-        # self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-        self.pb = QtGui.QProgressBar(self.centralwidget)
-        self.pb.setGeometry(QtCore.QRect(20, 20, 3001, 301))
-        self.pb.setRange(0,1000)
-        self.pb.setProperty("value", 10)
-        self.pb.move(10,10)
-        # self.pb.setObjectName(_fromUtf8("pb"))
+        self.progressBar = QtGui.QProgressBar(self)
+        self.progressBar.setGeometry(QtCore.QRect(20, 20, 1024, 30))
+        self.progressBar.setRange(0,1024)
+        self.progressBar.setProperty("value", 1)
+        self.progressBar.move(0,500)
+        self.progressBar.setVisible(False)
 
         openFile = QtGui.QAction("&File", self)
         openFile.setShortcut("Ctrl+O")
@@ -157,50 +170,65 @@ class Window(QtGui.QMainWindow):
         self.home()
 
     def home(self):
-        # progressBar = QtGui.QProgressBar()
-        # progressBar.setMinimum(1)
-        # progressBar.setMaximum(100)
-        # progressBar.setValue(50)
-        # progressBar.move(100,100)
-        # progressBar.resize(100,100)
-        # progressBar.repaint()
+        self.process_btn = QtGui.QPushButton("Process", self)
+        self.process_btn.clicked.connect(lambda: self.processImage())
+        self.process_btn.resize(100,100)
+        self.process_btn.move(100,100)
+        self.process_btn.setVisible(False)
 
-        process_btn = QtGui.QPushButton("Process", self)
-        process_btn.clicked.connect(lambda: self.processImage(process_btn))
-        process_btn.resize(100,100)
-        process_btn.move(100,100)
-        process_btn.setVisible(False)
-
-        open_btn = QtGui.QPushButton("Open an image", self)
-        open_btn.clicked.connect(lambda: self.file_open(open_btn, process_btn))
-        open_btn.resize(100,100)
-        open_btn.move(100,100)
+        self.open_btn = QtGui.QPushButton("Open an image", self)
+        self.open_btn.clicked.connect(lambda: self.file_open())
+        self.open_btn.resize(100,100)
+        self.open_btn.move(100,100)
 
         
         self.show()
 
-    def file_open(self, open_btn, process_btn):
+    def file_open(self):
         self.image_path = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
         logging.debug('Image path is' + self.image_path)
 
-        open_btn.setVisible(False)
-        process_btn.setVisible(True)
+        self.open_btn.setVisible(False)
+        self.progressBar.setVisible(True)
+        self.process_btn.setVisible(True)
 
-    def processImage(self, process_btn):
+    def progressBarUpdate(self):
+        self.progressBar.setValue(self.progressBarCurrent)
+        self.progressBarCurrent += self.progressBarIncrement
+        self.progressBar.repaint()
+
+    def processImage(self):
         # pixmap = QtGui.QPixmap(image_path)
         # self.lbl.setPixmap(pixmap)
         # logging.debug('Image opened')
 
-        img = azureHandwriting(self.image_path)
+        self.progressBarIncrement = 1024/7
+        self.progressBarCurrent = self.progressBarIncrement
+        denoisedImg = imageDenoising()
+        self.progressBarUpdate()
+        binarisedImg = imageBinarization()
+        self.progressBarUpdate()
+        LOTDetectedImg = imageLOTDetection()
+        self.progressBarUpdate()
+        wordROIDetectedImg = imageWordROIDetection()
+        self.progressBarUpdate()
+        NNWordDetectedImg = imageNNWordDetection()
+        self.progressBarUpdate()
+        wordSpellcorrectedImg = imageWordSpellcorrection()
+        self.progressBarUpdate()
+        azuredImg = imageAzureHandwriting(self.image_path)
+        self.progressBarUpdate()
+        
         # self.lbl.setPixmap(QtGui.QPixmap("./temp/azureCVDispProcessing.jpg"))
 
-        process_btn.setVisible(False)
+        self.process_btn.setVisible(False)
+        self.progressBar.setVisible(False)
 
         # logging.debug('azured image displayed')
 def run():
     setupLogging()
     app = QtGui.QApplication(sys.argv)
-    # app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
     GUI = Window()
     sys.exit(app.exec_())
 
