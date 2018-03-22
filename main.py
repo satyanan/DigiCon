@@ -13,10 +13,6 @@ import numpy as np
 from reportlab.pdfgen import canvas
 import qdarkstyle
 
-
-# pdf.cell(200,10,'Powered by FPDF',0,1,'C')
-
-
 def setupLogging():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -122,6 +118,7 @@ def imageAzureHandwriting(image_path):
         time.sleep(1)
     qimg = azureCVDispProcessing(analysis=analysis, image_path=image_path)
     return qimg
+
 def imageDenoising():
     pass
 
@@ -143,6 +140,8 @@ def imageWordSpellcorrection():
 class Window(QtGui.QMainWindow):
     image_path = ''
     imageSeq = []
+    currentSeq = -1
+    processingComplete = False
 
     def __init__(self):
         super(Window, self).__init__()
@@ -226,15 +225,42 @@ class Window(QtGui.QMainWindow):
         azuredImg = imageAzureHandwriting(self.image_path)
         self.imageSeqHandler(azuredImg)
         self.progressBarUpdate()
-        
+        self.processingComplete = True
         # self.lbl.setPixmap(QtGui.QPixmap("./temp/azureCVDispProcessing.jpg"))
 
         self.process_btn.setVisible(False)
         self.progressBar.setVisible(False)
-        
-    def dispalyHandler():
+
+    def dispalyHandler(self):
         pass
-        # logging.debug('azured image displayed')
+        # self.setPixmap(self.imageSeq[currentSeq])
+    
+    def leftKeyHandler(self):
+        if(self.processingComplete == False):
+            return
+        if(self.currentSeq == 0):
+            return
+        self.currentSeq -= 1
+        self.dispalyHandler()
+
+    def rightKeyHandler(self):
+        if(self.processingComplete == False):
+            return
+        if(self.currentSeq == len(self.imageSeq)):
+            return
+        self.currentSeq += 1
+        self.dispalyHandler()
+        
+    def keyPressEvent(self, event):
+        print("keyPressEvent happened")
+        if event.key() == QtCore.Qt.Key_Left:
+            logging.info("Left key pressed")
+            self.leftKeyHandler()
+        elif event.key() == QtCore.Qt.Key_Right:
+            logging.info("Right key pressed")
+            self.rightKeyHandler()
+        event.accept()
+
 def run():
     setupLogging()
     app = QtGui.QApplication(sys.argv)
