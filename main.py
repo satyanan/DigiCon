@@ -1,3 +1,4 @@
+import os
 import sys
 import logging
 from PyQt4 import QtGui, QtCore
@@ -9,8 +10,6 @@ import requests
 import json
 import cv2 as cv
 import numpy as np
-# from docx import Document
-# from docx.shared import Inches
 from reportlab.pdfgen import canvas
 
 
@@ -125,9 +124,10 @@ def azureHandwriting(image_path):
     
 
 class Window(QtGui.QMainWindow):
+    image_path = ''
     def __init__(self):
         super(Window, self).__init__()
-        self.setGeometry(100, 100, 500, 300)
+        self.setGeometry(50, 50, 500, 300)
         self.setWindowTitle("PyQT Show Image")
 
         openFile = QtGui.QAction("&File", self)
@@ -146,25 +146,43 @@ class Window(QtGui.QMainWindow):
         self.home()
 
     def home(self):
+        process_btn = QtGui.QPushButton("Process", self)
+        process_btn.clicked.connect(lambda: self.processImage(process_btn))
+        process_btn.resize(100,100)
+        process_btn.move(100,100)
+        process_btn.setVisible(False)
+
+        open_btn = QtGui.QPushButton("Open an image", self)
+        open_btn.clicked.connect(lambda: self.file_open(open_btn, process_btn))
+        open_btn.resize(100,100)
+        open_btn.move(100,100)
+
+        
         self.show()
 
-    def file_open(self):
-        image_path = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
-        logging.debug('Image path is' + image_path)
-        pixmap = QtGui.QPixmap(image_path)
-        self.lbl.setPixmap(pixmap)
-        logging.debug('Image opened')
+    def file_open(self, open_btn, process_btn):
+        self.image_path = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+        logging.debug('Image path is' + self.image_path)
 
-        img = azureHandwriting(image_path)
-        self.lbl.setPixmap(QtGui.QPixmap("./temp/azureCVDispProcessing.jpg"))
+        open_btn.setVisible(False)
+        process_btn.setVisible(True)
 
-        logging.debug('azured image displayed')
+    def processImage(self, process_btn):
+        # pixmap = QtGui.QPixmap(image_path)
+        # self.lbl.setPixmap(pixmap)
+        # logging.debug('Image opened')
 
+        img = azureHandwriting(self.image_path)
+        # self.lbl.setPixmap(QtGui.QPixmap("./temp/azureCVDispProcessing.jpg"))
+
+        process_btn.setVisible(False)
+
+        # logging.debug('azured image displayed')
 def run():
     setupLogging()
     app = QtGui.QApplication(sys.argv)
     GUI = Window()
     sys.exit(app.exec_())
 
-c = canvas.Canvas("test.pdf")
+c = canvas.Canvas("./temp/test.pdf")
 run()
