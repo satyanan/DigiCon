@@ -142,6 +142,8 @@ def imageWordSpellcorrection():
 
 class Window(QtGui.QMainWindow):
     image_path = ''
+    imageSeq = []
+
     def __init__(self):
         super(Window, self).__init__()
         self.setGeometry(50, 50, 1024, 768)
@@ -197,13 +199,18 @@ class Window(QtGui.QMainWindow):
         self.progressBarCurrent += self.progressBarIncrement
         self.progressBar.repaint()
 
-    def processImage(self):
-        # pixmap = QtGui.QPixmap(image_path)
-        # self.lbl.setPixmap(pixmap)
-        # logging.debug('Image opened')
+    def imageSeqHandler(self, cvImg):
+        height, width, channel = cvImg.shape
+        bytesPerLine = channel*3 #Error prone in case of binarized images
+        qImg = QtGui.QImage(cvImg, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+        self.imageSeq.append(QtGui.QPixmap(qImg))
 
+    def processImage(self):
         self.progressBarIncrement = 1024/7
         self.progressBarCurrent = self.progressBarIncrement
+
+        virginImg = cv.imread(str(self.image_path))
+        self.imageSeqHandler(virginImg)
         denoisedImg = imageDenoising()
         self.progressBarUpdate()
         binarisedImg = imageBinarization()
@@ -217,13 +224,16 @@ class Window(QtGui.QMainWindow):
         wordSpellcorrectedImg = imageWordSpellcorrection()
         self.progressBarUpdate()
         azuredImg = imageAzureHandwriting(self.image_path)
+        self.imageSeqHandler(azuredImg)
         self.progressBarUpdate()
         
         # self.lbl.setPixmap(QtGui.QPixmap("./temp/azureCVDispProcessing.jpg"))
 
         self.process_btn.setVisible(False)
         self.progressBar.setVisible(False)
-
+        
+    def dispalyHandler():
+        pass
         # logging.debug('azured image displayed')
 def run():
     setupLogging()
