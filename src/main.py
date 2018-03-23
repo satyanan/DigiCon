@@ -141,7 +141,34 @@ def imageNNWordDetection():
 
 def imageWordSpellcorrection():
     pass
-def imageWordToList(analysis, binarisedImg):
+def charToNN(charImg):
+    return False, 'i'
+def wordImgToNN(wordImg):
+    height, width = wordImg.shape
+    windowMinSize = 1
+    windowSize = 1
+    windowSizeStep = 1
+    prevX = 0
+    detectedWord = ""
+    detectionArray = [0]
+    for i in range(0,width):
+        if prevX+windowSize > width:
+            break
+        detected, charDetected = charToNN(wordImg[0:height,prevX:prevX+windowSize])
+        if detected == True:
+            prevX = prevX+windowSize
+            windowSize = windowMinSize
+            detectedWord += charDetected
+            detectionArray.append(prevX)
+        else:
+            windowSize += windowSizeStep
+    return detectedWord, detectionArray
+
+def imageWordToList(analysis, bImg):
+    if(len(bImg.shape) == 2):
+        binarisedImg = cv.cvtColor(bImg, cv.COLOR_GRAY2RGB)
+    else:
+        binarisedImg = bImg
     wordROIList = []
     polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
     height, width, channels = binarisedImg.shape
@@ -255,7 +282,18 @@ class Window(QtGui.QMainWindow):
         azuredImg, azureAnalysis = imageAzureHandwriting(self.image_path)
         self.processingStepsHandler(azuredImg)
 
-        wordROIList = imageWordToList(azureAnalysis, virginImg)
+        wordROIList = imageWordToList(azureAnalysis, binarisedImg)
+        NNTestImg = cv.imread("../temp/roiImg/32.jpg",0)
+        NNTestDetectedWord, NNTestDetectionArray = wordImgToNN(NNTestImg)
+        print()
+        i =0
+        print(len(wordROIList))
+        for roiImg in wordROIList:
+            i+=1
+            logging.debug("saving "+ str(i))
+            # print("saving", i)
+            cv.imwrite("../temp/roiImg/"+str(i)+".jpg",roiImg)
+
         self.processingComplete = True
         self.lbl.setPixmap(QtGui.QPixmap("../test.jpg"))
         self.adjustSize()
