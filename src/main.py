@@ -52,29 +52,26 @@ def SaveFigureAsImage(fileName,fig=None):
 def azureCVDispProcessing(analysis, image_path):
     polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
     img_path = str(image_path)
-    print(img_path)
     img = cv.imread(img_path)
     height, width, channels = img.shape
     bg_img = img
     for polygon in polygons:
         vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
         cv.fillPoly(bg_img, pts=np.int32([vertices]), color=(0,255,0))
-    cv.imwrite('./temp/bg_img.jpg',bg_img)
-    c.drawImage('./temp/bg_img.jpg',0,0)    
+    cv.imwrite('../temp/bg_img.jpg',bg_img)
+    c.drawImage('../temp/bg_img.jpg',0,0)    
     for polygon in polygons:
         vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
         text     = polygon[1]
-        # print vertices
         min_x = min(vertices, key = lambda t: t[0])[0]
         min_y = min(vertices, key = lambda t: t[1])[1]
         max_x = max(vertices, key = lambda t: t[0])[0]
         max_y = max(vertices, key = lambda t: t[1])[1]
-        # print min_x,min_y,max_x,max_y
         # cv.fillPoly(img, pts=np.int32([vertices]), color=(0,255,0))
         cv.rectangle(img,(min_x,min_y),(max_x,max_y),(0,255,0),cv.cv.CV_FILLED)
         cv.putText(img, text, vertices[0], cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 1 , cv.CV_AA)
         c.drawString(min_x,height-(min_y+max_y)/2,text)
-    cv.imwrite( "./temp/azureCVDispProcessing.jpg", img)
+    cv.imwrite( "../temp/azureCVDispProcessing.jpg", img)
     qimg = cv.cvtColor(img, cv.cv.CV_BGR2RGB)#for Qt display
     logging.debug('Image with ROI saved')
     c.save()
@@ -147,12 +144,8 @@ def imageWordSpellcorrection():
 def imageWordToList(analysis, binarisedImg):
     wordROIList = []
     polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
-    # img_path = str(image_path)
-    # print(img_path)
-    # img = cv.imread(img_path)
     height, width, channels = binarisedImg.shape
-    print height, width, channels
-    # c.drawImage('./temp/bg_img.jpg',0,0)    
+
     for polygon in polygons:
         vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
         text     = polygon[1]
@@ -165,7 +158,6 @@ def imageWordToList(analysis, binarisedImg):
         # cv.imshow("dsdsd",roi )
         # cv.waitKey(0)
     return wordROIList
-    # cv.imwrite( "./temp/azureCVDispProcessing.jpg", img)
     
 class Window(QtGui.QMainWindow):
     image_path = ''
@@ -198,8 +190,6 @@ class Window(QtGui.QMainWindow):
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(openFile)
 
-        
-
         self.home()
 
     def home(self):
@@ -214,7 +204,6 @@ class Window(QtGui.QMainWindow):
         self.open_btn.resize(100,100)
         self.open_btn.move(100,100)
 
-        
         self.show()
 
     def file_open(self):
@@ -238,8 +227,8 @@ class Window(QtGui.QMainWindow):
         height, width, channel = cvImg.shape
         bytesPerLine = channel*3 #Error prone in case of binarized images
         qImg = QtGui.QImage(cvImg, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-        # self.imageSeq.append(QtGui.QPixmap(qImg))
         self.imageSeq.append(cvImg)
+
     def processingStepsHandler(self, cvImg):
         self.imageSeqHandler(cvImg)
         self.progressBarUpdate()
@@ -249,6 +238,7 @@ class Window(QtGui.QMainWindow):
         self.progressBarCurrent = self.progressBarIncrement
 
         virginImg = cv.imread(str(self.image_path))
+
         self.processingStepsHandler(virginImg)
         denoisedImg = imageDenoising(virginImg)
         self.processingStepsHandler(denoisedImg)
@@ -267,7 +257,7 @@ class Window(QtGui.QMainWindow):
 
         wordROIList = imageWordToList(azureAnalysis, virginImg)
         self.processingComplete = True
-        self.lbl.setPixmap(QtGui.QPixmap("./test.jpg"))
+        self.lbl.setPixmap(QtGui.QPixmap("../test.jpg"))
         self.adjustSize()
 
         self.process_btn.setVisible(False)
@@ -275,8 +265,8 @@ class Window(QtGui.QMainWindow):
 
     def dispalyHandler(self):
         print("display handler called")
-        cv.imwrite("./temp/res.jpg",self.imageSeq[self.currentSeq])
-        self.lbl.setPixmap(QtGui.QPixmap("./temp/res.jpg"))
+        cv.imwrite("../temp/res.jpg",self.imageSeq[self.currentSeq])
+        self.lbl.setPixmap(QtGui.QPixmap("../temp/res.jpg"))
         self.lbl.repaint()
         self.adjustSize()
     
@@ -309,9 +299,12 @@ class Window(QtGui.QMainWindow):
 def run():
     setupLogging()
     app = QtGui.QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
+    sshFile="./stylesheet/darkOrange.stylesheet"
+    with open(sshFile,"r") as fh:
+        app.setStyleSheet(fh.read())
+    # app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
     GUI = Window()
     sys.exit(app.exec_())
 
-c = canvas.Canvas("./temp/test.pdf")
+c = canvas.Canvas("../temp/test.pdf")
 run()

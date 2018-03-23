@@ -1,9 +1,8 @@
 #!/bin/sh
 
 # install dependencies
-sudo apt-get install python3-pip
-pip3 install pyqt5
-sudo apt-get install python3-matplotlib
+sudp apt-get install pip
+pip install pyqt4
 sudo apt-get update
 sudo -E pip install reportlab
 sudo -E pip install qdarkstyle
