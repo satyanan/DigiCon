@@ -12,6 +12,12 @@ import cv2 as cv
 import numpy as np
 from reportlab.pdfgen import canvas
 import qdarkstyle
+import pickle as pkl
+import heapq
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder
 
 def setupLogging():
     logger = logging.getLogger()
@@ -132,7 +138,8 @@ class prescription():
         return img
 
     def charToNN(self, charImg):
-        return False, 'i'
+        mlp = pkl.load(open('../classifier/classifier.bin', 'rb'))
+        return False, 'i', 0.0
 
     def wordImgToNN(self, wordImg):
         height, width = wordImg.shape
@@ -145,7 +152,7 @@ class prescription():
         for i in range(0,width):
             if prevX+windowSize > width:
                 break
-            detected, charDetected = self.charToNN(wordImg[0:height,prevX:prevX+windowSize])
+            detected, charDetected, _ = self.charToNN(wordImg[0:height,prevX:prevX+windowSize])
             if detected == True:
                 prevX = prevX+windowSize
                 windowSize = windowMinSize
@@ -155,12 +162,35 @@ class prescription():
                 windowSize += windowSizeStep
         return detectedWord, detectionArray
 
+    def wordTree(self, startPos, prevProb, dpMatrix, heap, maxAggregation = 3):
+
+        for i in range(1, maxAggregation+1):
+            _detected, detectedChar, detectionProb = dpMatrix[startPos][startPos + i]
+            # heap[startPos+i].heappush((detectionProb, detectedChar))
+            if(len(heap[i+ detectionProb]) > 10): # and len(heap[i+ detectionProb]) > 0.03**(i+maxAggregation) ):
+                if(heapq.nsmallest(1, heap)[0].first > detectionProb*prevProb):
+                    return
+            heapq.heappush((detectionProb, detectedChar), heap)
+
+    def wordImgToNNTree(self, wordImg):
+        height, width = wordImg.shape()
+        windowSize = 3
+        maxAggregation = 3
+        nWindows = width/windowSize + 1
+        self.dpMatrix = [[(False,'a', 0.0) for _x in range(nWindows)] for _y in range(nWindows)]
+        for i in range(nWindows):
+            for j in range(maxAggregation):
+                detected, detectedChar, detectionProb = self.charToNN(wordImg[0:height, i*windowSize:min(width, (i+1)*windowSize)])
+                self.dpMatrix[i][j] = (detected, detectedChar, detectionProb)
+        heap = [[(0.0, "")] for i in range(nWindows)]
+        self.wordTree(0, 1, self.dpMatrix, heap, 3)
+        
     def wordImgToNNDP(self, wordImg):
         height, width = wordImg.shape
         windowSize = 1
         maxAggregation = 4
         maxRows = width/windowSize + 1
-        dpMatrix = [[(0.0,'a') for _x in range(maxRows)] for _y in range(maxAggregation)]
+        dpMatrix = [[(False,'a', 0.0) for _x in range(maxRows)] for _y in range(maxAggregation)]
         for i in range(0,maxRows):
             x = i*windowSize
             for j in range(1,maxAggregation):
@@ -168,8 +198,8 @@ class prescription():
                     continue
                 if x + windowSize*j > width:
                     continue
-                detected, detectedChar = self.charToNN(wordImg[0:height, x:x+windowSize*j])
-                dpMatrix[i][j] = (detected, detectedChar)
+                detected, detectedChar, probChar = self.charToNN(wordImg[0:height, x:x+windowSize*j])
+                dpMatrix[i][j] = (detected, detectedChar, probChar)
         detectedWord, detectionArray = self.dpEval(dpMatrix)
 
         return detectedWord, detectionArray
@@ -298,7 +328,8 @@ class Window(QtGui.QMainWindow):
 
         wordROIList = self.prescriptionInstance.imageWordToList(binarisedImg)
         NNTestImg = cv.imread("../temp/roiImg/32.jpg",0)
-        _NNTestDetectedWord, _NNTestDetectionArray = self.prescriptionInstance.wordImgToNN(NNTestImg)
+        # _NNTestDetectedWord, _NNTestDetectionArray = self.prescriptionInstance.wordImgToNN(NNTestImg)
+        _detectedWordTree = self.prescriptionInstance.wordImgToNNTree(NNTestImg)
 
         i = 0
         print(len(wordROIList))
