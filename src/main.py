@@ -65,7 +65,7 @@ class prescription():
         bg_img = img
         for polygon in polygons:
             vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
-            cv.fillPoly(bg_img, pts = np.uint32([vertices]), color=(0,255,0))
+            cv.fillPoly(bg_img, pts = np.int32([vertices]), color=(0,255,0))
         cv.imwrite('../temp/bg_img.jpg',bg_img)
         c.drawImage('../temp/bg_img.jpg',0,0)    
         for polygon in polygons:
