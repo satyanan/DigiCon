@@ -48,168 +48,155 @@ def setupLogging():
 #     plt.axis('off')
 #     plt.xlim(0,h); plt.ylim(w,0)
 #     fig.savefig(fileName, transparent=True, bbox_inches='tight',pad_inches=0)
+class prescription():
+    imagePath = ""
 
-def azureCVDispProcessing(analysis, image_path):
-    polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
-    img_path = str(image_path)
-    img = cv.imread(img_path)
-    height, width, channels = img.shape
-    bg_img = img
-    for polygon in polygons:
-        vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
-        cv.fillPoly(bg_img, pts=np.int32([vertices]), color=(0,255,0))
-    cv.imwrite('../temp/bg_img.jpg',bg_img)
-    c.drawImage('../temp/bg_img.jpg',0,0)    
-    for polygon in polygons:
-        vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
-        text     = polygon[1]
-        min_x = min(vertices, key = lambda t: t[0])[0]
-        min_y = min(vertices, key = lambda t: t[1])[1]
-        max_x = max(vertices, key = lambda t: t[0])[0]
-        max_y = max(vertices, key = lambda t: t[1])[1]
-        # cv.fillPoly(img, pts=np.int32([vertices]), color=(0,255,0))
-        cv.rectangle(img,(min_x,min_y),(max_x,max_y),(0,255,0),cv.cv.CV_FILLED)
-        cv.putText(img, text, vertices[0], cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 1 , cv.CV_AA)
-        c.drawString(min_x,height-(min_y+max_y)/2,text)
-    cv.imwrite( "../temp/azureCVDispProcessing.jpg", img)
-    qimg = cv.cvtColor(img, cv.cv.CV_BGR2RGB)#for Qt display
-    logging.debug('Image with ROI saved')
-    c.save()
-    return qimg
+    def __init__(self, imagePath):
+        self.imagePath = imagePath
 
-def azureDispProcessing(analysis, image_path):
-    polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
-    plt.figure(figsize=(15,15))
-    image  = mpimg.imread(image_path)
-    ax     = plt.imshow(image)
-    for polygon in polygons:
-        vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
-        text     = polygon[1]
-        patch    = Polygon(vertices, closed=True,fill=True, linewidth=2, color='y')
-        ax.axes.add_patch(patch)
-        plt.text(vertices[0][0], vertices[0][1], text, fontsize=20, va="top")
-    _ = plt.axis("off")
-    plt.show(block=False)
-    logging.debug('Image with ROI saved')
 
-def imageAzureHandwriting(image_path):
-    subscription_key = "00c800bde4fe46b7b36fc42aba617e6b"
-    assert subscription_key
-    vision_base_url = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/"
-    text_recognition_url = vision_base_url + "RecognizeText"
+    def azureCVDispProcessing(self, analysis):
+        image_path = self.imagePath
+        polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
+        self.azurePolygons = polygons
+        img_path = str(image_path)
+        img = cv.imread(img_path)
+        height, _width, _channels = img.shape
+        bg_img = img
+        for polygon in polygons:
+            vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
+            cv.fillPoly(bg_img, pts = np.uint32([vertices]), color=(0,255,0))
+        cv.imwrite('../temp/bg_img.jpg',bg_img)
+        c.drawImage('../temp/bg_img.jpg',0,0)    
+        for polygon in polygons:
+            vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
+            text     = polygon[1]
+            min_x = min(vertices, key = lambda t: t[0])[0]
+            min_y = min(vertices, key = lambda t: t[1])[1]
+            max_x = max(vertices, key = lambda t: t[0])[0]
+            max_y = max(vertices, key = lambda t: t[1])[1]
+            # cv.fillPoly(img, pts=np.int32([vertices]), color=(0,255,0))
+            cv.rectangle(img,(min_x,min_y),(max_x,max_y),(0,255,0),cv.cv.CV_FILLED)
+            cv.putText(img, text, vertices[0], cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 1 , cv.CV_AA)
+            c.drawString(min_x,height-(min_y+max_y)/2,text)
+        # cv.imwrite( "../temp/azureCVDispProcessing.jpg", img)
+        cvImg = cv.cvtColor(img, cv.cv.CV_BGR2RGB)#for Qt display
+        logging.debug('Image with ROI saved')
+        c.save()
+        return cvImg
 
-    # using image in disk
-    image_data = open(image_path, "rb").read()
-    headers    = {'Ocp-Apim-Subscription-Key': subscription_key, 
-              "Content-Type": "application/octet-stream" }
-    params   = {'handwriting' : True}
-    response = requests.post(text_recognition_url, headers=headers, params=params, data=image_data)
-    response.raise_for_status()
-    
-    operation_url = response.headers["Operation-Location"]
-    analysis = {}
-    while not "recognitionResult" in analysis:
-        logging.info('Polling azure GET')
-        response_final = requests.get(response.headers["Operation-Location"], headers=headers)
-        analysis       = response_final.json()
-        time.sleep(1)
-    qimg = azureCVDispProcessing(analysis=analysis, image_path=image_path)
-    return qimg, analysis
+    def imageAzureHandwriting(self):
+        image_path = self.imagePath
+        subscription_key = "00c800bde4fe46b7b36fc42aba617e6b"
+        assert subscription_key
+        vision_base_url = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/"
+        text_recognition_url = vision_base_url + "RecognizeText"
 
-def imageDenoising(img):
-    img= cv.cvtColor(img, cv.COLOR_RGB2GRAY)
-    return img
+        # using image in disk
+        image_data = open(image_path, "rb").read()
+        headers    = {'Ocp-Apim-Subscription-Key': subscription_key, 
+                "Content-Type": "application/octet-stream" }
+        params   = {'handwriting' : True}
+        response = requests.post(text_recognition_url, headers=headers, params=params, data=image_data)
+        response.raise_for_status()
+        
+        _operation_url = response.headers["Operation-Location"]
+        analysis = {}
+        while not "recognitionResult" in analysis:
+            logging.info('Polling azure GET')
+            response_final = requests.get(response.headers["Operation-Location"], headers=headers)
+            analysis       = response_final.json()
+            time.sleep(1)
+        qimg = self.azureCVDispProcessing(analysis=analysis)
+        return qimg, analysis
 
-def imageBinarization(img):
-    # global thresholding
-    # ret1,th1 = cv.threshold(img,127,255,cv.THRESH_BINARY)
-    # Otsu's thresholding
-    # ret2,th2 = cv.threshold(img,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
-    # Otsu's thresholding after Gaussian filtering
-    blur = cv.GaussianBlur(img,(3,3),0)
-    ret3,th3 = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
-    return th3
+    def imageDenoising(self, img):
+        img= cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+        return img
 
-def imageLOTDetection(img):
-    return img
+    def imageBinarization(self, img):
+        blur = cv.GaussianBlur(img,(3,3),0)
+        _ret3,th3 = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+        return th3
 
-def imageWordROIDetection(img):
-    return img
+    def imageLOTDetection(self, img):
+        return img
 
-def imageNNWordDetection(img):
-    return img
+    def imageWordROIDetection(self, img):
+        return img
 
-def imageWordSpellcorrection(img):
-    return img
+    def imageNNWordDetection(self, img):
+        return img
 
-def charToNN(charImg):
-    return False, 'i'
+    def imageWordSpellcorrection(self, img):
+        return img
 
-def wordImgToNN(wordImg):
-    height, width = wordImg.shape
-    windowMinSize = 1
-    windowSize = 1
-    windowSizeStep = 1
-    prevX = 0
-    detectedWord = ""
-    detectionArray = [0]
-    for i in range(0,width):
-        if prevX+windowSize > width:
-            break
-        detected, charDetected = charToNN(wordImg[0:height,prevX:prevX+windowSize])
-        if detected == True:
-            prevX = prevX+windowSize
-            windowSize = windowMinSize
-            detectedWord += charDetected
-            detectionArray.append(prevX)
+    def charToNN(self, charImg):
+        return False, 'i'
+
+    def wordImgToNN(self, wordImg):
+        height, width = wordImg.shape
+        windowMinSize = 1
+        windowSize = 1
+        windowSizeStep = 1
+        prevX = 0
+        detectedWord = ""
+        detectionArray = [0]
+        for i in range(0,width):
+            if prevX+windowSize > width:
+                break
+            detected, charDetected = self.charToNN(wordImg[0:height,prevX:prevX+windowSize])
+            if detected == True:
+                prevX = prevX+windowSize
+                windowSize = windowMinSize
+                detectedWord += charDetected
+                detectionArray.append(prevX)
+            else:
+                windowSize += windowSizeStep
+        return detectedWord, detectionArray
+
+    def wordImgToNNDP(self, wordImg):
+        height, width = wordImg.shape
+        windowSize = 1
+        maxAggregation = 4
+        maxRows = width/windowSize + 1
+        dpMatrix = [[(0.0,'a') for _x in range(maxRows)] for _y in range(maxAggregation)]
+        for i in range(0,maxRows):
+            x = i*windowSize
+            for j in range(1,maxAggregation):
+                if x > width:
+                    continue
+                if x + windowSize*j > width:
+                    continue
+                detected, detectedChar = self.charToNN(wordImg[0:height, x:x+windowSize*j])
+                dpMatrix[i][j] = (detected, detectedChar)
+        detectedWord, detectionArray = self.dpEval(dpMatrix)
+
+        return detectedWord, detectionArray
+
+    def dpEval(self, dpMatrix):
+        return (0.0,'a')
+
+    def imageWordToList(self, bImg):
+        if(len(bImg.shape) == 2):
+            binarisedImg = cv.cvtColor(bImg, cv.COLOR_GRAY2RGB)
         else:
-            windowSize += windowSizeStep
-    return detectedWord, detectionArray
+            binarisedImg = bImg
+        wordROIList = []
 
-def wordImgToNNDP(wordImg):
-    height, width = wordImg.shape
-    windowSize = 1
-    maxAggregation = 4
-    maxRows = width/windowSize + 1
-    dpMatrix = [[(0.0,'a') for _x in range(maxRows)] for _y in range(maxAggregation)]
-    for i in range(0,maxRows):
-        x = i*windowSize
-        for j in range(1,maxAggregation):
-            if x > width:
-                continue
-            if x + windowSize*j > width:
-                continue
-            detected, detectedChar = charToNN(wordImg[0:height, x:x+windowSize*j])
-            dpMatrix[i][j] = (detected, detectedChar)
-    detectedWord, detectionArray = dpEval(dpMatrix)
-
-    return detectedWord, detectionArray
-
-def dpEval(dpMatrix):
-    return (0.0,'a')
-
-def imageWordToList(analysis, bImg):
-    if(len(bImg.shape) == 2):
-        binarisedImg = cv.cvtColor(bImg, cv.COLOR_GRAY2RGB)
-    else:
-        binarisedImg = bImg
-    wordROIList = []
-    polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
-    # height, width, channels = binarisedImg.shape
-
-    for polygon in polygons:
-        vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
-        text     = polygon[1]
-        min_x = min(vertices, key = lambda t: t[0])[0]
-        min_y = min(vertices, key = lambda t: t[1])[1]
-        max_x = max(vertices, key = lambda t: t[0])[0]
-        max_y = max(vertices, key = lambda t: t[1])[1]
-        roi = binarisedImg[min_y:max_y,min_x:max_x]
-        wordROIList.append(roi)
-        # cv.imshow("dsdsd",roi )
-        # cv.waitKey(0)
-    return wordROIList
-    
+        for polygon in self.azurePolygons:
+            vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
+            _text     = polygon[1]
+            min_x = min(vertices, key = lambda t: t[0])[0]
+            min_y = min(vertices, key = lambda t: t[1])[1]
+            max_x = max(vertices, key = lambda t: t[0])[0]
+            max_y = max(vertices, key = lambda t: t[1])[1]
+            roi = binarisedImg[min_y:max_y,min_x:max_x]
+            wordROIList.append(roi)
+            # cv.imshow("dsdsd",roi )
+            # cv.waitKey(0)
+        return wordROIList
+        
 class Window(QtGui.QMainWindow):
     image_path = ''
     imageSeq = []
@@ -259,6 +246,7 @@ class Window(QtGui.QMainWindow):
 
     def file_open(self):
         self.image_path = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+        self.prescriptionInstance = prescription(str(self.image_path))
         logging.debug('Image path is' + self.image_path)
 
         self.open_btn.setVisible(False)
@@ -271,16 +259,18 @@ class Window(QtGui.QMainWindow):
         self.lbl.progressBar.repaint()
 
     def imageSeqHandler(self, _cvImg):
+        #Just saves image in imgSeq for displaying in GUI
         if(len(_cvImg.shape) == 2):
             cvImg = cv.cvtColor(_cvImg, cv.COLOR_GRAY2RGB)
         else:
             cvImg = _cvImg
         height, width, channel = cvImg.shape
         bytesPerLine = channel*3 #Error prone in case of binarized images
-        qImg = QtGui.QImage(cvImg, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+        _qImg = QtGui.QImage(cvImg, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
         self.imageSeq.append(cvImg)
 
     def processingStepsHandler(self, cvImg):
+        # GUI stuff
         self.imageSeqHandler(cvImg)
         self.progressBarUpdate()
 
@@ -291,31 +281,30 @@ class Window(QtGui.QMainWindow):
         virginImg = cv.imread(str(self.image_path))
 
         self.processingStepsHandler(virginImg)
-        denoisedImg = imageDenoising(virginImg)
+        denoisedImg = self.prescriptionInstance.imageDenoising(virginImg)
         self.processingStepsHandler(denoisedImg)
-        binarisedImg = imageBinarization(denoisedImg)
+        binarisedImg = self.prescriptionInstance.imageBinarization(denoisedImg)
         self.processingStepsHandler(binarisedImg)
-        LOTDetectedImg = imageLOTDetection(binarisedImg)
-        self.processingStepsHandler(binarisedImg)
-        wordROIDetectedImg = imageWordROIDetection(binarisedImg)
-        self.processingStepsHandler(binarisedImg)
-        NNWordDetectedImg = imageNNWordDetection(binarisedImg)
-        self.processingStepsHandler(binarisedImg)
-        wordSpellcorrectedImg = imageWordSpellcorrection(binarisedImg)
-        self.processingStepsHandler(binarisedImg)
-        azuredImg, azureAnalysis = imageAzureHandwriting(self.image_path)
+        LOTDetectedImg = self.prescriptionInstance.imageLOTDetection(binarisedImg)
+        self.processingStepsHandler(LOTDetectedImg)
+        wordROIDetectedImg = self.prescriptionInstance.imageWordROIDetection(binarisedImg)
+        self.processingStepsHandler(wordROIDetectedImg)
+        NNWordDetectedImg = self.prescriptionInstance.imageNNWordDetection(binarisedImg)
+        self.processingStepsHandler(NNWordDetectedImg)
+        wordSpellcorrectedImg = self.prescriptionInstance.imageWordSpellcorrection(binarisedImg)
+        self.processingStepsHandler(wordSpellcorrectedImg)
+        azuredImg, _azureAnalysis = self.prescriptionInstance.imageAzureHandwriting()
         self.processingStepsHandler(azuredImg)
 
-        wordROIList = imageWordToList(azureAnalysis, binarisedImg)
+        wordROIList = self.prescriptionInstance.imageWordToList(binarisedImg)
         NNTestImg = cv.imread("../temp/roiImg/32.jpg",0)
-        NNTestDetectedWord, NNTestDetectionArray = wordImgToNN(NNTestImg)
-        print()
-        i =0
+        _NNTestDetectedWord, _NNTestDetectionArray = self.prescriptionInstance.wordImgToNN(NNTestImg)
+
+        i = 0
         print(len(wordROIList))
         for roiImg in wordROIList:
             i+=1
             logging.debug("saving "+ str(i))
-            # print("saving", i)
             cv.imwrite("../temp/roiImg/"+str(i)+".jpg",roiImg)
 
         self.processingComplete = True
@@ -365,7 +354,7 @@ def run():
     with open(sshFile,"r") as fh:
         app.setStyleSheet(fh.read())
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
-    GUI = Window()
+    _GUI = Window()
     sys.exit(app.exec_())
 
 c = canvas.Canvas("../temp/test.pdf")
