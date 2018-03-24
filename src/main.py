@@ -22,32 +22,32 @@ def setupLogging():
     loggerHandler.setFormatter(loggerFormatter)
     logger.addHandler(loggerHandler)
 
-def SaveFigureAsImage(fileName,fig=None,**kwargs):
-    fig_size = fig.get_size_inches()
-    w,h = fig_size[0], fig_size[1]
-    fig.patch.set_alpha(0)
-    if kwargs.has_key('orig_size'): # Aspect ratio scaling if required
-        w,h = kwargs['orig_size']
-        w2,h2 = fig_size[0],fig_size[1]
-        fig.set_size_inches([(w2/w)*w,(w2/w)*h])
-        fig.set_dpi((w2/w)*fig.get_dpi())
-    a=fig.gca()
-    a.set_frame_on(False)
-    a.set_xticks([]); a.set_yticks([])
-    plt.axis('off')
-    plt.xlim(0,h); plt.ylim(w,0)
-    fig.savefig(fileName, transparent=True, bbox_inches='tight',pad_inches=0)
+# def SaveFigureAsImage(fileName,fig=None,**kwargs):
+#     fig_size = fig.get_size_inches()
+#     w,h = fig_size[0], fig_size[1]
+#     fig.patch.set_alpha(0)
+#     if kwargs.has_key('orig_size'): # Aspect ratio scaling if required
+#         w,h = kwargs['orig_size']
+#         w2,h2 = fig_size[0],fig_size[1]
+#         fig.set_size_inches([(w2/w)*w,(w2/w)*h])
+#         fig.set_dpi((w2/w)*fig.get_dpi())
+#     a=fig.gca()
+#     a.set_frame_on(False)
+#     a.set_xticks([]); a.set_yticks([])
+#     plt.axis('off')
+#     plt.xlim(0,h); plt.ylim(w,0)
+#     fig.savefig(fileName, transparent=True, bbox_inches='tight',pad_inches=0)
 
-def SaveFigureAsImage(fileName,fig=None):
-    fig_size = fig.get_size_inches()
-    w,h = fig_size[0], fig_size[1]
-    fig.patch.set_alpha(0)
-    a=fig.gca()
-    a.set_frame_on(False)
-    a.set_xticks([]); a.set_yticks([])
-    plt.axis('off')
-    plt.xlim(0,h); plt.ylim(w,0)
-    fig.savefig(fileName, transparent=True, bbox_inches='tight',pad_inches=0)
+# def SaveFigureAsImage(fileName,fig=None):
+#     fig_size = fig.get_size_inches()
+#     w,h = fig_size[0], fig_size[1]
+#     fig.patch.set_alpha(0)
+#     a=fig.gca()
+#     a.set_frame_on(False)
+#     a.set_xticks([]); a.set_yticks([])
+#     plt.axis('off')
+#     plt.xlim(0,h); plt.ylim(w,0)
+#     fig.savefig(fileName, transparent=True, bbox_inches='tight',pad_inches=0)
 
 def azureCVDispProcessing(analysis, image_path):
     polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
@@ -122,27 +122,29 @@ def imageDenoising(img):
 
 def imageBinarization(img):
     # global thresholding
-    ret1,th1 = cv.threshold(img,127,255,cv.THRESH_BINARY)
+    # ret1,th1 = cv.threshold(img,127,255,cv.THRESH_BINARY)
     # Otsu's thresholding
-    ret2,th2 = cv.threshold(img,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+    # ret2,th2 = cv.threshold(img,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
     # Otsu's thresholding after Gaussian filtering
     blur = cv.GaussianBlur(img,(3,3),0)
     ret3,th3 = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
     return th3
 
-def imageLOTDetection():
-    pass
+def imageLOTDetection(img):
+    return img
 
-def imageWordROIDetection():
-    pass
+def imageWordROIDetection(img):
+    return img
 
-def imageNNWordDetection():
-    pass
+def imageNNWordDetection(img):
+    return img
 
-def imageWordSpellcorrection():
-    pass
+def imageWordSpellcorrection(img):
+    return img
+
 def charToNN(charImg):
     return False, 'i'
+
 def wordImgToNN(wordImg):
     height, width = wordImg.shape
     windowMinSize = 1
@@ -164,6 +166,28 @@ def wordImgToNN(wordImg):
             windowSize += windowSizeStep
     return detectedWord, detectionArray
 
+def wordImgToNNDP(wordImg):
+    height, width = wordImg.shape
+    windowSize = 1
+    maxAggregation = 4
+    maxRows = width/windowSize + 1
+    dpMatrix = [[(0.0,'a') for _x in range(maxRows)] for _y in range(maxAggregation)]
+    for i in range(0,maxRows):
+        x = i*windowSize
+        for j in range(1,maxAggregation):
+            if x > width:
+                continue
+            if x + windowSize*j > width:
+                continue
+            detected, detectedChar = charToNN(wordImg[0:height, x:x+windowSize*j])
+            dpMatrix[i][j] = (detected, detectedChar)
+    detectedWord, detectionArray = dpEval(dpMatrix)
+
+    return detectedWord, detectionArray
+
+def dpEval(dpMatrix):
+    return (0.0,'a')
+
 def imageWordToList(analysis, bImg):
     if(len(bImg.shape) == 2):
         binarisedImg = cv.cvtColor(bImg, cv.COLOR_GRAY2RGB)
@@ -171,7 +195,7 @@ def imageWordToList(analysis, bImg):
         binarisedImg = bImg
     wordROIList = []
     polygons = [(line["boundingBox"], line["text"]) for line in analysis["recognitionResult"]["lines"]] 
-    height, width, channels = binarisedImg.shape
+    # height, width, channels = binarisedImg.shape
 
     for polygon in polygons:
         vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
@@ -271,13 +295,13 @@ class Window(QtGui.QMainWindow):
         self.processingStepsHandler(denoisedImg)
         binarisedImg = imageBinarization(denoisedImg)
         self.processingStepsHandler(binarisedImg)
-        LOTDetectedImg = imageLOTDetection()
+        LOTDetectedImg = imageLOTDetection(binarisedImg)
         self.processingStepsHandler(binarisedImg)
-        wordROIDetectedImg = imageWordROIDetection()
+        wordROIDetectedImg = imageWordROIDetection(binarisedImg)
         self.processingStepsHandler(binarisedImg)
-        NNWordDetectedImg = imageNNWordDetection()
+        NNWordDetectedImg = imageNNWordDetection(binarisedImg)
         self.processingStepsHandler(binarisedImg)
-        wordSpellcorrectedImg = imageWordSpellcorrection()
+        wordSpellcorrectedImg = imageWordSpellcorrection(binarisedImg)
         self.processingStepsHandler(binarisedImg)
         azuredImg, azureAnalysis = imageAzureHandwriting(self.image_path)
         self.processingStepsHandler(azuredImg)
@@ -340,7 +364,7 @@ def run():
     sshFile="./stylesheet/darkOrange.stylesheet"
     with open(sshFile,"r") as fh:
         app.setStyleSheet(fh.read())
-    # app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
     GUI = Window()
     sys.exit(app.exec_())
 
