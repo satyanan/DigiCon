@@ -102,6 +102,9 @@ ENV/
 
 #temp files
 temp/
+pre_proc/
+classifier/
+temp1/
 *.jpg
 
 #vscode config
