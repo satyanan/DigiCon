@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-gray = cv2.imread("1.png",0)
+gray = cv2.imread("../temp/roiImg/36.jpg",0)
 
 hasText = 0
 cv2.imshow("aefd",gray)
@@ -20,8 +20,9 @@ while idx >= 0:
          	for j in range(0,w):
          		img[i][j] = gray[y+i][x+j]
        #this is the output imag
+        print "got one"
        ##===================================================##
-        cv2.imwrite('output/' + str(hasText) + '.png', img)  #  
+        cv2.imwrite('./output/' + str(hasText) + '.png', img)  #  
        ##===================================================##
     	hasText += 1
     idx = hierarchy[0][idx][0]

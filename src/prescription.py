@@ -209,6 +209,4 @@ class prescription():
             max_y = max(vertices, key = lambda t: t[1])[1]
             roi = binarisedImg[min_y:max_y,min_x:max_x]
             wordROIList.append(roi)
-            # cv.imshow("dsdsd",roi )
-            # cv.waitKey(0)
         return wordROIList
