@@ -6,8 +6,9 @@ from sklearn.preprocessing import LabelEncoder
 from matplotlib import pyplot as plt
 import cv2 as cv
 import pickle as pkl
+import gzip
 
-f = open("fetr1.txt")
+f = gzip.open("fetr1.txt.gz")
 
 a = np.ndarray([55*62, 50*50])
 b = np.ndarray([55*62], dtype=int)
@@ -53,7 +54,7 @@ n = 3
 xte[0][1000]
 for i in range(50):
     for j in range(50):
-        data[i][j] = (cv.resize(255-cv.imread('p.png', 0), (50, 50)).reshape(1,2500))[0][i*50+j]
+        data[i][j] = (cv.resize(255-cv.imread('p.png', 0), (50, 50)).reshape(1, 2500))[0][i*50+j]
 plt.imshow(data, interpolation='nearest')
 
 if True:
@@ -63,3 +64,9 @@ if True:
     plt.imshow(data, interpolation='nearest')
 
 cv.imshow('N', cv.resize(255-cv.imread('N.png', 0), (50, 50)))
+
+if True:
+    import gzip
+    import shutil
+    with open('classifier/fetr1.txt', 'rb') as f_in, gzip.open('classifier/fetr1.txt.gz', 'wb') as f_out:
+        shutil.copyfileobj(f_in, f_out)
