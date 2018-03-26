@@ -113,11 +113,12 @@ class Window(QtGui.QMainWindow):
         self.processingStepsHandler(wordROIDetectedImg)   
         # self.processingStepsHandler(NNWordDetectedImg)  
         self.processingStepsHandler(azuredImg)
+        self.prescriptionInstance.wordCorrection()
         self.processingStepsHandler(wordSpellcorrectedImg)                   
         
-        NNTestImg = prescription.cv.imread("../temp/roiImg/32.jpg",0)
+        # NNTestImg = prescription.cv.imread("../temp/roiImg/32.jpg",0)
         # _NNTestDetectedWord, _NNTestDetectionArray = self.prescriptionInstance.wordImgToNN(NNTestImg)
-        _detectedWordTree = self.prescriptionInstance.wordImgToNNTree(NNTestImg)
+        # _detectedWordTree = self.prescriptionInstance.wordImgToNNTree(NNTestImg)
 
         # # To save image roi's to be used later I guess
         # i = 0

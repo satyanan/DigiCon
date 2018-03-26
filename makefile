@@ -37,7 +37,10 @@ clean:
 	rm -rf temp/*
 	rm -rf test/*
 
-run:
+envsetup:
+	mkdir -p ./temp/output/intermediateImgs
+	
+run: envsetup
 	export logLevel="WARNING"
 	cd ./src/ &&	python main.py
 

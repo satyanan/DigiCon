@@ -31,7 +31,7 @@ len(lab.classes_)
 
 mlp = MLPClassifier(solver='lbfgs', max_iter=1000, hidden_layer_sizes=(100))
 mlp.fit(xtrn, ytr)
-pkl.dump(mlp, open('classifier.bin', 'wb'))
+pkl.dump((mlp, s, lab), open('classifier.bin', 'wb'))
 
 sorted(mlp.predict_proba(xten)[0])
 np.sum(mlp.predict(xten)==yte)/float(len(yte))

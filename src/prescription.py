@@ -12,9 +12,16 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
 import pickle as pkl
 
+'''
+Maintains prescriptiin's image and its mutators and processing functions. 
+Also contains method for generating the pdf output
+'''
 class prescription():
     imagePath = ""
-
+    wordROI = []
+    wordROIList = []
+    correctedWordROIList = []
+    
     def __init__(self, imagePath):
         self.imagePath = imagePath
         self.c = canvas.Canvas("../temp/test.pdf")
@@ -185,13 +192,14 @@ class prescription():
     def dpEval(self, dpMatrix):
         return (0.0,'a')
 
+    def wordCorrection(self):
+        pass
+
     def imageWordToList(self, bImg):
-        self.wordROI = []
         if(len(bImg.shape) == 2):
             binarisedImg = cv.cvtColor(bImg, cv.COLOR_GRAY2RGB)
         else:
             binarisedImg = bImg
-        wordROIList = []
 
         for polygon in self.azurePolygons:
             vertices = [(polygon[0][i], polygon[0][i+1]) for i in range(0,len(polygon[0]),2)]
@@ -202,5 +210,5 @@ class prescription():
             max_y = max(vertices, key = lambda t: t[1])[1]
             self.wordROI.append((min_x,max_x,min_y,max_y))
             roi = binarisedImg[min_y:max_y,min_x:max_x]
-            wordROIList.append(roi)
-        return wordROIList
+            self.wordROIList.append(roi)
+        return self.wordROIList

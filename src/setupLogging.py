@@ -2,6 +2,7 @@ import sys
 import os
 import logging
 
+# Sets up logging based on the input parameter logging. Log level defaults to logging.WARN
 def setupLogging(logLevel=logging.WARNING):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
