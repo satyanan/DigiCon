@@ -85,7 +85,10 @@ class prescription():
         return img
 
     def imageWordROIDetection(self, img):
-        return img
+        imageWordROIDetected = cv.cvtColor(img, cv.COLOR_GRAY2RGB)
+        for roi in self.wordROI:
+            cv.rectangle(imageWordROIDetected,(roi[0],roi[2]),(roi[1],roi[3]),(0,255,0),2)
+        return imageWordROIDetected
 
     def imageNNWordDetection(self, img):
         return img
@@ -183,6 +186,7 @@ class prescription():
         return (0.0,'a')
 
     def imageWordToList(self, bImg):
+        self.wordROI = []
         if(len(bImg.shape) == 2):
             binarisedImg = cv.cvtColor(bImg, cv.COLOR_GRAY2RGB)
         else:
@@ -196,6 +200,7 @@ class prescription():
             min_y = min(vertices, key = lambda t: t[1])[1]
             max_x = max(vertices, key = lambda t: t[0])[0]
             max_y = max(vertices, key = lambda t: t[1])[1]
+            self.wordROI.append((min_x,max_x,min_y,max_y))
             roi = binarisedImg[min_y:max_y,min_x:max_x]
             wordROIList.append(roi)
         return wordROIList
