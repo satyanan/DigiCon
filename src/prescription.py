@@ -58,12 +58,10 @@ class prescription():
 
         # using image in disk
         image_data = open(image_path, "rb").read()
-        headers    = {'Ocp-Apim-Subscription-Key': subscription_key, 
-                "Content-Type": "application/octet-stream" }
+        headers    = {'Ocp-Apim-Subscription-Key': subscription_key, "Content-Type": "application/octet-stream" }
         params   = {'handwriting' : True}
         response = requests.post(text_recognition_url, headers=headers, params=params, data=image_data)
         response.raise_for_status()
-        
         _operation_url = response.headers["Operation-Location"]
         analysis = {}
         while not "recognitionResult" in analysis:
@@ -96,9 +94,7 @@ class prescription():
         return img
 
     def charToNN(self, charImg):
-        cv.imshow("lol", charImg)
         cvImgResized = cv.resize(255-charImg, (50, 50)).reshape(1,2500)
-        cv.waitKey(0)
 
         lab = LabelEncoder()
         l = map(chr, list(range(ord('0'), ord('9')+1))+list(range(ord('A'), ord('Z')+1))+list(range(ord('a'), ord('z')+1)))
@@ -107,9 +103,6 @@ class prescription():
 
         mlp = pkl.load(open('../classifier/classifier.bin', 'rb'))
         print (mlp.predict_proba(cvImgResized)[0])
-        cv.waitKey(0)
-        # np.sum(mlp.predict(xten)==yte)/float(len(yte))
-        # np.sum(mlp.predict(xtrn)==ytr), len(ytr)
         return True, 'i', 0.0
 
     def wordImgToNN(self, wordImg):
@@ -137,16 +130,12 @@ class prescription():
 
         for i in range(1, maxAggregation + 1):
             _detected, detectedChar, detectionProb = dpMatrix[startPos][i]
-            # heap[startPos+i].heappush((detectionProb, detectedChar))
             if(len(heap[i+ startPos]) > 10): # and len(heap[i+ detectionProb]) > 0.03**(i+maxAggregation) ):
                 if(heapq.nsmallest(1, heap)[0].first > detectionProb*prevProb):
-                    print "here LOL"
                     return
             heapq.heappush(heap, (detectionProb, detectedChar))
 
     def wordImgToNNTree(self, wordImg):
-        cv.imshow("wirdImg", wordImg)
-        cv.waitKey(0)
         height, width = wordImg.shape
         windowSize = 10
         maxAggregation = 3
@@ -158,14 +147,14 @@ class prescription():
                 _, _wide = wordImg.shape
                 if _wide <=0:
                     continue
-                print i*windowSize, (i+j)*windowSize, width
+                setupLogging.logging.debug(i*windowSize, (i+j)*windowSize, width)
                 detected, detectedChar, detectionProb = self.charToNN(imgToTest)
                 self.dpMatrix[i][j] = (detected, detectedChar, detectionProb)
 
-        for row in self.dpMatrix:
-            for val in row:
-                print '{:4}'.format(val[1]),
-            print
+        # for row in self.dpMatrix:
+        #     for val in row:
+        #         print '{:4}'.format(val[1]),
+        #     print
 
         heap = [[(0.0, "")] for i in range(nWindows)]
         self.wordTree(0, 1, self.dpMatrix, heap, 3)

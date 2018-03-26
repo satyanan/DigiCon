@@ -23,9 +23,9 @@ help:
 	@echo " functest		to run only functionality tests"
 
 install:
-	rm -rf temp1/*
-	mkdir temp1
-	mkdir temp1/output
+	rm -rf temp/*
+	mkdir temp
+	mkdir temp/output
 	pip install -r requirements.txt
 	sudo chmod +x install.sh
 	sudo -E ./install.sh
@@ -36,3 +36,14 @@ build: install
 clean:
 	rm -rf temp/*
 	rm -rf test/*
+
+run:
+	export logLevel="WARNING"
+	cd ./src/ &&	python main.py
+
+rundebug:
+	cd ./src
+	export logLevel="DEBUG"
+	python2 main.py
+
+runbatch:

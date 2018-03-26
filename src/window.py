@@ -2,6 +2,8 @@ from PyQt4 import QtGui, QtCore
 import prescription
 import setupLogging
 import qdarkstyle
+import os
+import cv2 as cv
 
 class Window(QtGui.QMainWindow):
     image_path = ''
@@ -12,6 +14,10 @@ class Window(QtGui.QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
         self.setGeometry(50, 50, 1024, 768)
+        desktop = QtGui.QDesktopWidget()
+        self.screenSize = desktop.availableGeometry(desktop.primaryScreen())
+        print self.screenSize
+        self.setFixedSize(1024,768)
         self.setWindowTitle("DigiCon")
 
         self.lbl = QtGui.QLabel(self)
@@ -33,20 +39,21 @@ class Window(QtGui.QMainWindow):
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(openFile)
+        # self.statusBar().setSizeGripEnabled(False)
 
         self.home()
 
     def home(self):
         self.process_btn = QtGui.QPushButton("Process", self)
         self.process_btn.clicked.connect(lambda: self.processImage())
-        self.process_btn.resize(100,100)
-        self.process_btn.move(100,100)
+        self.process_btn.resize(120, 30)
+        self.process_btn.move(452,540)
         self.process_btn.setVisible(False)
 
         self.open_btn = QtGui.QPushButton("Open an image", self)
         self.open_btn.clicked.connect(lambda: self.file_open())
-        self.open_btn.resize(100,100)
-        self.open_btn.move(100,100)
+        self.open_btn.resize(120, 30)
+        self.open_btn.move(452, 540)
 
         self.show()
 
@@ -54,6 +61,10 @@ class Window(QtGui.QMainWindow):
         self.image_path = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
         self.prescriptionInstance = prescription.prescription(str(self.image_path))
         setupLogging.logging.debug('Image path is' + self.image_path)
+
+        img = cv.imread(str(self.image_path))
+        cv.imshow("ff", img)
+        cv.waitKey(0)
 
         self.open_btn.setVisible(False)
         self.lbl.progressBar.setVisible(True)
@@ -114,19 +125,31 @@ class Window(QtGui.QMainWindow):
         #     i+=1
         #     logging.debug("saving "+ str(i))
         #     cv.imwrite("../temp/roiImg/"+str(i)+".jpg",roiImg)
-
         self.processingComplete = True
-        self.lbl.setPixmap(QtGui.QPixmap("../test.jpg"))
-        self.adjustSize()
+        height, width, _ = self.imageSeq[0].shape
+        self.saveIntermediateImgs()
+        # for img in self.imageSeq:
+        #     cv.imshow("shit", img)
+        #     cv.waitKey(0)
 
+        # self.setFixedSize(width, height)
+        self.rightKeyHandler()
+        self.adjustSize()
         self.process_btn.setVisible(False)
         self.lbl.progressBar.setVisible(False)
 
     def dispalyHandler(self):
-        print("display handler called")
-        prescription.cv.imwrite("../temp/res.jpg",self.imageSeq[self.currentSeq])
-        self.lbl.setPixmap(QtGui.QPixmap("../temp/res.jpg"))
+        setupLogging.logging.debug("display handler called")
+
+        currentWidth, currentHeight, _ = self.imageSeq[self.currentSeq].shape
+        newHeight = int(768*currentHeight/currentWidth)
+        print newHeight
+        scaledImage = cv.resize(self.imageSeq[self.currentSeq], (newHeight , 768))
+
+        prescription.cv.imwrite("../temp/disp.jpg",scaledImage)
+        self.lbl.setPixmap(QtGui.QPixmap("../temp/disp.jpg"))
         self.lbl.repaint()
+        self.setFixedSize(newHeight,768)
         self.adjustSize()
     
     def leftKeyHandler(self):
@@ -146,7 +169,7 @@ class Window(QtGui.QMainWindow):
         self.dispalyHandler()
         
     def keyPressEvent(self, event):
-        print("keyPressEvent happened",self.currentSeq, len(self.imageSeq))
+        setupLogging.logging.debug("keyPressEvent happened",self.currentSeq, len(self.imageSeq))
         if event.key() == QtCore.Qt.Key_P:
             setupLogging.logging.info("Left key pressed")
             self.leftKeyHandler()
@@ -154,3 +177,24 @@ class Window(QtGui.QMainWindow):
             setupLogging.logging.info("Right key pressed")
             self.rightKeyHandler()
         event.accept()
+    def makeDirectoryIfDNE(self, directory):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+    def cleanDirectory(self, directory):
+        for the_file in os.listdir(directory):
+            file_path = os.path.join(directory, the_file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                setupLogging.logging.warning(e)
+
+    def saveIntermediateImgs(self):
+        directory = "../temp/output/intermediateImgs/"
+        self.makeDirectoryIfDNE(directory)
+        self.cleanDirectory(directory)
+        i = 0
+        for img in self.imageSeq:
+            cv.imwrite(directory + str(i)+'.jpg', img)
+            i+=1

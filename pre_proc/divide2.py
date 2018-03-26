@@ -7,7 +7,7 @@ hasText = 0
 cv2.imshow("aefd",gray)
 morphKernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
 grad = cv2.morphologyEx(gray, cv2.MORPH_GRADIENT, morphKernel)
-morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 1))
+morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 1))
 connected = cv2.morphologyEx(grad, cv2.MORPH_CLOSE, morphKernel)
 mask = np.zeros(grad.shape[:2], dtype="uint8");
 contours, hierarchy = cv2.findContours(connected, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)

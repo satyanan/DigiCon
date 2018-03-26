@@ -1,11 +1,12 @@
 import sys
+import os
 import logging
 
-def setupLogging():
+def setupLogging(logLevel=logging.WARNING):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     loggerHandler = logging.StreamHandler(sys.stdout)
-    loggerHandler.setLevel(logging.DEBUG)
+    loggerHandler.setLevel(logLevel)
     loggerFormatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     loggerHandler.setFormatter(loggerFormatter)
     logger.addHandler(loggerHandler)
