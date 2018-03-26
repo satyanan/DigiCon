@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # install dependencies
-sudp apt-get install pip
-sudo apt-get install python-qt4
-sudo apt-get python install scipy
-sudo apt-get update
+sudo -E apt-get install pip
+sudo -E apt-get install python-qt4
+sudo -E apt-get python install scipy
+sudo -E apt-get update

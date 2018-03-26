@@ -3,8 +3,11 @@ import numpy as np
 import argparse
 import cv2
  
-image = cv2.imread("tilt.png")
+image = cv2.imread("../temp/roiImg/60.jpg")
+# cv2.imshow("fdfs", image)
+# cv2.waitKey(0)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+# gray = image
 gray = cv2.bitwise_not(gray)
 thresh = cv2.threshold(gray, 0, 255,cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
 coords = np.column_stack(np.where(thresh > 0))
