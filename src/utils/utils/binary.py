@@ -36,7 +36,10 @@ def smooth_image(img):
 def adaptive_thresholding(img):
   # adaptive mean binary threshold
   th4 = cv.adaptiveThreshold(img,255,cv.ADAPTIVE_THRESH_MEAN_C,cv.THRESH_BINARY,11,2)
+  
   th5 = cv.adaptiveThreshold(img,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,cv.THRESH_BINARY,11,2)
+  cv.imshow("ddfcdsa",th5)
+  cv.waitKey(0)
   return th5
 def otsu_binarisation(img):
   # global thresholding
@@ -66,4 +69,6 @@ def binary(img):
   th = adaptive_thresholding(th)
   th = otsu_binarisation(th)
   th = smooth_image(th)
+  print(img.shape)
+  print(th.shape)
   return th

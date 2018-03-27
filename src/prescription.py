@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
 import pickle as pkl
-
+from utils.binary import *
 '''
 Maintains prescriptiin's image and its mutators and processing functions. 
 Also contains method for generating the pdf output
@@ -84,10 +84,13 @@ class prescription():
         return img
 
     def imageBinarization(self, img):
-        blur = cv.GaussianBlur(img,(3,3),0)
-        _ret3,th3 = cv.threshold(blur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
-        return th3
-
+        img_sobel = cv.Sobel(img, cv.CV_8U, 1, 0, 3)
+	img_threshold = cv.threshold(img_sobel, 0, 255, cv.THRESH_OTSU+cv.THRESH_BINARY)[1]
+	img_threshold = 255 - img_threshold
+        #kernel = np.ones((3,3),np.uint8)
+	#img_threshold = cv.erode(img_threshold,kernel,iterations = 1)
+        return img_threshold
+  	
     def imageLOTDetection(self, img):
         return img
 
