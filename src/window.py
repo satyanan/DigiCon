@@ -59,6 +59,11 @@ class Window(QtGui.QMainWindow):
 
     def file_open(self):
         self.image_path = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+        bigImage = cv.imread(str(self.image_path))
+        height, width, _ =  bigImage.shape
+        rescaledImg = cv.resize(bigImage,(1024*width/height, 1024))
+        cv.imwrite("../temp/output/input.jpg", rescaledImg)
+        self.image_path = QtCore.QString('../temp/input.jpg')
         self.prescriptionInstance = prescription.prescription(str(self.image_path))
         setupLogging.logging.debug('Image path is' + self.image_path)
 
