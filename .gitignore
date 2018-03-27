@@ -105,6 +105,7 @@ temp/
 pre_proc/
 classifier/
 temp1/
+documents/
 *.jpg
 
 #vscode config

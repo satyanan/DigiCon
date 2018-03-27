@@ -15,3 +15,17 @@ https://github.com/jrosebr1/imutils
 
 * Greyscale to BGR converion load
 * pdf saving gets clipped
+
+Req and dependencies
+  hardware and OS
+    1024*768
+    Ubuntu 14.04
+  Software dependiecies
+    Ubuntu packages
+    python packages
+Installation and usage
+  Installing using make
+  Running the application
+    User mode
+    Debug mode
+    

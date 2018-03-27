@@ -63,10 +63,9 @@ class Window(QtGui.QMainWindow):
         height, width, _ =  bigImage.shape
         rescaledImg = cv.resize(bigImage,(1024*width/height, 1024))
         cv.imwrite("../temp/output/input.jpg", rescaledImg)
-        self.image_path = QtCore.QString('../temp/input.jpg')
+        self.image_path = QtCore.QString('../temp/output/input.jpg')
         self.prescriptionInstance = prescription.prescription(str(self.image_path))
         setupLogging.logging.debug('Image path is' + self.image_path)
-
         # img = cv.imread(str(self.image_path))
         # cv.imshow("ff", img)
         # cv.waitKey(0)

@@ -22,16 +22,20 @@ help:
 	@echo " sanitytest	to run only sanity tests"
 	@echo " functest		to run only functionality tests"
 
+package:
+	tar -cvf ./digicon.tar.gz ./digicon
+
 install:
-	rm -rf temp/*
-	mkdir temp
-	mkdir temp/output
-	pip install -r requirements.txt
+	rm -rf ./digicon
+	tar -xvf digicon.tar.gz -C ./
+	cp -a ./digicon/* ./
+	rm -rf digicon/*
+	mkdir -p ./temp/output/intermediateImgs
 	sudo chmod +x install.sh
 	sudo -E ./install.sh
-
+	pip install -r requirements.txt
+	
 build: install
-
 
 clean:
 	rm -rf temp/*
@@ -44,9 +48,8 @@ run: envsetup
 	export logLevel="WARNING"
 	cd ./src/ &&	python main.py
 
-rundebug:
-	cd ./src
+rundebug: envsetup
 	export logLevel="DEBUG"
-	python2 main.py
+	cd ./src && python2 main.py
 
 runbatch:
