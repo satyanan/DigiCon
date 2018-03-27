@@ -12,3 +12,6 @@
 ##### Technical paper
 https://github.com/schollz/python-ocr
 https://github.com/jrosebr1/imutils
+
+* Greyscale to BGR converion load
+* pdf saving gets clipped

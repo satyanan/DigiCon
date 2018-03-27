@@ -24,7 +24,7 @@ class prescription():
     
     def __init__(self, imagePath):
         self.imagePath = imagePath
-        self.c = canvas.Canvas("../temp/test.pdf")
+        self.c = canvas.Canvas("../temp/output/result.pdf")
 
     def azureCVDispProcessing(self, analysis):
         image_path = self.imagePath
