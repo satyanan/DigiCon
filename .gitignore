@@ -106,6 +106,7 @@ pre_proc/
 classifier/
 temp1/
 documents/
+digicon/
 *.jpg
 
 #vscode config

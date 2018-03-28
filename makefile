@@ -23,7 +23,7 @@ help:
 	@echo " functest		to run only functionality tests"
 
 package:
-	tar -cvf ./digicon.tar.gz ./src install.sh requirements.txt
+	tar -cvf ./digicon.tar.gz ./src ./classifier ./pre_proc ./autocorrect install.sh requirements.txt
 
 install:
 	rm -rf ./digicon

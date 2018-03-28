@@ -1,4 +1,6 @@
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 import prescription
 import setupLogging
 import qdarkstyle
@@ -34,11 +36,14 @@ class Window(QtGui.QMainWindow):
         openFile.setStatusTip("Open File")
         openFile.triggered.connect(self.file_open)
 
-        self.statusBar()
+        statusBar = QStatusBar()
+        self.setStatusBar(statusBar)
+        statusBar.showMessage('Press N for next/ P for previous')        
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(openFile)
         self.statusBar().setSizeGripEnabled(False)
+        self.statusBar().setVisible(False)
 
         self.home()
 
@@ -68,12 +73,7 @@ class Window(QtGui.QMainWindow):
         self.image_path = QtCore.QString('../temp/output/input.jpg')
         self.prescriptionInstance = prescription.prescription(str(self.image_path))
         setupLogging.logging.debug('Image path is' + self.image_path)
-        # img = cv.imread(str(self.image_path))
-        # cv.imshow("ff", img)
-        # cv.waitKey(0)
 
-        # self.image_btn. (QtGui.QPixmap("../temp/output/input.jpg"))
-        # self.setCentralWidget(self.image_btn)
         icon = QtGui.QIcon()
         _inp = QtGui.QPixmap("../temp/output/input.jpg")
         inp = _inp.scaled(250, 420, QtCore.Qt.KeepAspectRatio)
@@ -81,10 +81,10 @@ class Window(QtGui.QMainWindow):
         self.image_btn.setIcon(icon)
         self.image_btn.setIconSize(inp.rect().size())
         self.image_btn.resize(250, 420)
-        # self.image_btn.resize(inp.rect().size())
         self.image_btn.move(412,40)
         self.image_btn.setVisible(True)
         
+        self.statusBar().setVisible(True)
         self.open_btn.setVisible(False)
         self.lbl.progressBar.setVisible(True)
         self.process_btn.setVisible(True)
@@ -95,7 +95,6 @@ class Window(QtGui.QMainWindow):
         self.lbl.progressBar.repaint()
 
     def imageSeqHandler(self, _cvImg):
-        #Just saves image in imgSeq for displaying in GUI
         if(len(_cvImg.shape) == 2):
             cvImg = prescription.cv.cvtColor(_cvImg, prescription.cv.COLOR_GRAY2RGB)
         else:
@@ -106,7 +105,6 @@ class Window(QtGui.QMainWindow):
         self.imageSeq.append(cvImg)
 
     def processingStepsHandler(self, cvImg):
-        # GUI stuff
         self.imageSeqHandler(cvImg)
         self.progressBarUpdate()
 
@@ -121,39 +119,19 @@ class Window(QtGui.QMainWindow):
         self.processingStepsHandler(denoisedImg)
         binarisedImg = self.prescriptionInstance.imageBinarization(denoisedImg)
         self.processingStepsHandler(binarisedImg)
-        # LOTDetectedImg = self.prescriptionInstance.imageLOTDetection(binarisedImg)
-        # self.processingStepsHandler(LOTDetectedImg)
         azuredImg, _azureAnalysis = self.prescriptionInstance.imageAzureHandwriting()
 
         wordROIList = self.prescriptionInstance.imageWordToList(binarisedImg)        
         wordROIDetectedImg = self.prescriptionInstance.imageWordROIDetection(binarisedImg)
-        # NNWordDetectedImg = self.prescriptionInstance.imageNNWordDetection(binarisedImg)
         wordSpellcorrectedImg = self.prescriptionInstance.imageWordSpellcorrection(azuredImg)
         self.processingStepsHandler(wordROIDetectedImg)   
-        # self.processingStepsHandler(NNWordDetectedImg)  
         self.processingStepsHandler(azuredImg)
         self.prescriptionInstance.wordCorrection()
         self.processingStepsHandler(wordSpellcorrectedImg)                   
         
-        # NNTestImg = prescription.cv.imread("../temp/roiImg/32.jpg",0)
-        # _NNTestDetectedWord, _NNTestDetectionArray = self.prescriptionInstance.wordImgToNN(NNTestImg)
-        # _detectedWordTree = self.prescriptionInstance.wordImgToNNTree(NNTestImg)
-
-        # # To save image roi's to be used later I guess
-        # i = 0
-        # print(len(wordROIList))
-        # for roiImg in wordROIList:
-        #     i+=1
-        #     logging.debug("saving "+ str(i))
-        #     cv.imwrite("../temp/roiImg/"+str(i)+".jpg",roiImg)
         self.processingComplete = True
         height, width, _ = self.imageSeq[0].shape
         self.saveIntermediateImgs()
-        # for img in self.imageSeq:
-        #     cv.imshow("shit", img)
-        #     cv.waitKey(0)
-
-        # self.setFixedSize(width, height)
         self.rightKeyHandler()
         self.adjustSize()
         self.image_btn.setVisible(False)
