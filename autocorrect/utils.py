@@ -1,16 +1,7 @@
-# Python 3 Spelling Corrector
-#
-# Copyright 2014 Jonas McCallum.
-# Updated for Python 3, based on Peter Norvig's
-# 2007 version: http://norvig.com/spell-correct.html
-#
-# Open source, MIT license
-# http://www.opensource.org/licenses/mit-license.php
+
+
 """
 File reader, concat function and dict wrapper
-
-Author: Jonas McCallum
-https://github.com/foobarmus/autocorrect
 
 """
 import re, os, tarfile
@@ -56,3 +47,6 @@ class Zero(dict):
             return 0
 
 zero_default_dict = Zero
+
+			
+			

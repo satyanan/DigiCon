@@ -8,7 +8,7 @@ from matplotlib.patches import Polygon
 import setupLogging
 import window
 
-
+# Sets up log level based on environment variabel exported by make
 def logLevelResolver():
     logLevel = setupLogging.logging.WARNING
     if os.environ.get('logLevel') is None:
@@ -19,12 +19,12 @@ def logLevelResolver():
         logLevel = setupLogging.logging.INFO
     return logLevel
 
-
+# Acquires log level from logLevelResolver
 def envHandler():
     logLevel = logLevelResolver()
     return logLevel
 
-
+# Instantiates the GUI and applies styling.
 def run():
     app = window.QtGui.QApplication(sys.argv)
     sshFile = './stylesheet/darkOrange.stylesheet'

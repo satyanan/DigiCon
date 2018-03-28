@@ -28,19 +28,19 @@ class Window(QtGui.QMainWindow):
 
         self.lbl = QtGui.QLabel(self)
         self.setCentralWidget(self.lbl)
-
+        # Setting up progress bar view
         self.lbl.progressBar = QtGui.QProgressBar(self)
         self.lbl.progressBar.setGeometry(QtCore.QRect(20, 20, 1024, 30))
         self.lbl.progressBar.setRange(0, 1024)
         self.lbl.progressBar.setProperty('value', 1)
         self.lbl.progressBar.move(0, 500)
         self.lbl.progressBar.setVisible(False)
-
+        # Setting up file open command
         openFile = QtGui.QAction('&File', self)
         openFile.setShortcut('Ctrl+O')
         openFile.setStatusTip('Open File')
         openFile.triggered.connect(self.file_open)
-
+        # Setting up status bar
         statusBar = QStatusBar()
         self.setStatusBar(statusBar)
         statusBar.showMessage('Press N for next/ P for previous')
@@ -49,27 +49,29 @@ class Window(QtGui.QMainWindow):
         fileMenu.addAction(openFile)
         self.statusBar().setSizeGripEnabled(False)
         self.statusBar().setVisible(False)
-
+        
         self.home()
-
+    # Sets up home page views and buttons
     def home(self):
+        # Setting up process button
         self.process_btn = QtGui.QPushButton('Process', self)
         self.process_btn.clicked.connect(lambda : self.processImage())
         self.process_btn.resize(120, 30)
         self.process_btn.move(452, 540)
         self.process_btn.setVisible(False)
-
+        # Sets up file open button
         self.open_btn = QtGui.QPushButton('Open an image', self)
         self.open_btn.clicked.connect(lambda : self.file_open())
         self.open_btn.resize(120, 30)
         self.open_btn.move(452, 540)
-
+        # Sets up image preview
         self.image_btn = QtGui.QPushButton('', self)
         self.image_btn.setVisible(False)
-
+        # Render view
         self.show()
-
+    # File open handler function
     def file_open(self):
+        # Gettign the image path and rescaling it to reduce further processing time
         self.image_path = QtGui.QFileDialog.getOpenFileName(self,
                 'Open File')
         bigImage = cv.imread(str(self.image_path))
@@ -80,7 +82,7 @@ class Window(QtGui.QMainWindow):
         self.prescriptionInstance = \
             prescription.prescription(str(self.image_path))
         setupLogging.logging.debug('Image path is' + self.image_path)
-
+        # Triggering some GUI changes on file opening
         icon = QtGui.QIcon()
         _inp = QtGui.QPixmap('../temp/output/input.jpg')
         inp = _inp.scaled(250, 420, QtCore.Qt.KeepAspectRatio)
@@ -95,12 +97,12 @@ class Window(QtGui.QMainWindow):
         self.open_btn.setVisible(False)
         self.lbl.progressBar.setVisible(True)
         self.process_btn.setVisible(True)
-
+    # Progress update handler
     def progressBarUpdate(self):
         self.lbl.progressBar.setValue(self.progressBarCurrent)
         self.progressBarCurrent += self.progressBarIncrement
         self.lbl.progressBar.repaint()
-
+    # The sequence of output handler
     def imageSeqHandler(self, _cvImg):
         if len(_cvImg.shape) == 2:
             cvImg = prescription.cv.cvtColor(_cvImg,
@@ -112,11 +114,11 @@ class Window(QtGui.QMainWindow):
         _qImg = QtGui.QImage(cvImg, width, height, bytesPerLine,
                              QtGui.QImage.Format_RGB888)
         self.imageSeq.append(cvImg)
-
+    # Hnadles the bookkeeping after each processing step like saving intermediate outputs for viewing later and updating views
     def processingStepsHandler(self, cvImg):
         self.imageSeqHandler(cvImg)
         self.progressBarUpdate()
-
+    # Top level processing order handler. Calls functions upon the input prescription image and also does the bookkeeping stuff
     def processImage(self):
         self.progressBarIncrement = 1024 / 8
         self.progressBarCurrent = self.progressBarIncrement
@@ -133,7 +135,7 @@ class Window(QtGui.QMainWindow):
         (azuredImg, _azureAnalysis) = \
             self.prescriptionInstance.imageAzureHandwriting()
 
-        wordROIList = \
+        _wordROIList = \
             self.prescriptionInstance.imageWordToList(binarisedImg)
         wordROIDetectedImg = \
             self.prescriptionInstance.imageWordROIDetection(binarisedImg)
@@ -145,14 +147,14 @@ class Window(QtGui.QMainWindow):
         self.processingStepsHandler(wordSpellcorrectedImg)
 
         self.processingComplete = True
-        (height, width, _) = self.imageSeq[0].shape
+        (_height, _width, _) = self.imageSeq[0].shape
         self.saveIntermediateImgs()
         self.rightKeyHandler()
         self.adjustSize()
         self.image_btn.setVisible(False)
         self.process_btn.setVisible(False)
         self.lbl.progressBar.setVisible(False)
-
+    # Display/GUI changes on event handled by this function
     def dispalyHandler(self):
         setupLogging.logging.debug('display handler called')
 
@@ -167,7 +169,7 @@ class Window(QtGui.QMainWindow):
         self.lbl.repaint()
         self.setFixedSize(newHeight, 768)
         self.adjustSize()
-
+    # P key press event handling helper function
     def leftKeyHandler(self):
         if self.processingComplete == False:
             return
@@ -175,7 +177,7 @@ class Window(QtGui.QMainWindow):
             return
         self.currentSeq -= 1
         self.dispalyHandler()
-
+    # N key press event handling helper function
     def rightKeyHandler(self):
         if self.processingComplete == False:
             return
@@ -183,7 +185,7 @@ class Window(QtGui.QMainWindow):
             return
         self.currentSeq += 1
         self.dispalyHandler()
-
+    # Key press event handler function
     def keyPressEvent(self, event):
         setupLogging.logging.debug('keyPressEvent happened',
                                    self.currentSeq, len(self.imageSeq))
@@ -194,11 +196,11 @@ class Window(QtGui.QMainWindow):
             setupLogging.logging.info('Right key pressed')
             self.rightKeyHandler()
         event.accept()
-
+    # Makes a directory if it does not exist
     def makeDirectoryIfDNE(self, directory):
         if not os.path.exists(directory):
             os.makedirs(directory)
-
+    # Deletes all files and folders in a directory
     def cleanDirectory(self, directory):
         for the_file in os.listdir(directory):
             file_path = os.path.join(directory, the_file)
@@ -207,7 +209,7 @@ class Window(QtGui.QMainWindow):
                     os.unlink(file_path)
             except Exception, e:
                 setupLogging.logging.warning(e)
-
+    # Saves all intemediate output images for debugging
     def saveIntermediateImgs(self):
         directory = '../temp/output/intermediateImgs/'
         self.makeDirectoryIfDNE(directory)

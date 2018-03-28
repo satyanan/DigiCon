@@ -15,7 +15,9 @@ from sklearn.preprocessing import LabelEncoder
 import pickle as pkl
 from utils.binary import *
 
-
+'''
+The prescription calss holds the prescription image and has all mutators to it
+'''
 class prescription:
 
     imagePath = ''
@@ -26,7 +28,7 @@ class prescription:
     def __init__(self, imagePath):
         self.imagePath = imagePath
         self.c = canvas.Canvas('../temp/output/result.pdf')
-
+    # From the detrected words recreates the image with digital version of text.
     def azureCVDispProcessing(self, analysis):
         image_path = self.imagePath
         polygons = [(line['boundingBox'], line['text']) for line in
@@ -68,7 +70,7 @@ class prescription:
         setupLogging.logging.debug('Image with ROI saved')
         self.c.save()
         return cvImg
-
+    # Handwriting text detection using state of the art method. 
     def imageAzureHandwriting(self):
         image_path = self.imagePath
         subscription_key = '00c800bde4fe46b7b36fc42aba617e6b'
@@ -97,21 +99,21 @@ class prescription:
             time.sleep(1)
         qimg = self.azureCVDispProcessing(analysis=analysis)
         return (qimg, analysis)
-
+    # Denoises the raw input image of the prescription
     def imageDenoising(self, img):
         img = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
         return img
-
+    # Converts the colour imge of the prescription to a black and white image with black text and white background
     def imageBinarization(self, img):
         img_sobel = cv.Sobel(img, cv.CV_8U, 1, 0, 3)
         img_threshold = cv.threshold(img_sobel, 0, 255, cv.THRESH_OTSU
                 + cv.THRESH_BINARY)[1]
         img_threshold = 255 - img_threshold
         return img_threshold
-
+    # Detects the line of texts in the binarised image
     def imageLOTDetection(self, img):
         return img
-
+    # Draws ROI into the image from the detected ROIs
     def imageWordROIDetection(self, img):
         imageWordROIDetected = cv.cvtColor(img, cv.COLOR_GRAY2RGB)
         for roi in self.wordROI:
@@ -124,7 +126,7 @@ class prescription:
 
     def imageWordSpellcorrection(self, img):
         return img
-
+    # Using trained deep neural network model to detect split characters
     def charToNN(self, charImg):
         cvImgResized = cv.resize(255 - charImg, (50, 50)).reshape(1,
                 2500)
@@ -138,7 +140,9 @@ class prescription:
 
         mlp = pkl.load(open('../classifier/classifier.bin', 'rb'))
         return (True, 'i', 0.0)
-
+    def dpEval(self, dpMatrix):
+        return (0.0, 'a')
+    # Using our improved algorithm for splitting handwritten words into chracters and hence detecting words
     def wordImgToNN(self, wordImg):
         (height, width) = wordImg.shape
         windowMinSize = 1
@@ -160,7 +164,7 @@ class prescription:
             else:
                 windowSize += windowSizeStep
         return (detectedWord, detectionArray)
-
+    # Uses probabilistic model for finding the most probable word represented by a ROI
     def wordTree(
         self,
         startPos,
@@ -178,7 +182,7 @@ class prescription:
                     * prevProb:
                     return
             heapq.heappush(heap, (detectionProb, detectedChar))
-
+    # Used improved=II method for finding the best probabilistic match of an ROI to a word in the vocabulary
     def wordImgToNNTree(self, wordImg):
         (height, width) = wordImg.shape
         windowSize = 10
@@ -202,7 +206,7 @@ class prescription:
 
         heap = [[(0.0, '')] for i in range(nWindows)]
         self.wordTree(0, 1, self.dpMatrix, heap, 3)
-
+    # Takes each ROI and prepares it for CNN input and then implements our improved-I algorithm
     def wordImgToNNDP(self, wordImg):
         (height, width) = wordImg.shape
         windowSize = 1
@@ -226,12 +230,9 @@ class prescription:
 
         return (detectedWord, detectionArray)
 
-    def dpEval(self, dpMatrix):
-        return (0.0, 'a')
-
     def wordCorrection(self):
         pass
-
+    # Takes roi pilygons and makes a list of ROIs and it's bounding rectangles for further processing
     def imageWordToList(self, bImg):
         if len(bImg.shape) == 2:
             binarisedImg = cv.cvtColor(bImg, cv.COLOR_GRAY2RGB)

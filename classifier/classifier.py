@@ -17,23 +17,23 @@ for i, lin in enumerate(f):
     b[i] = lin[0]
     for j in range(2500):
         a[i][j] = lin[1+j]
-
+# Split the dataset into test and training set
 xtr, xte, ytr, yte = train_test_split(a, b, test_size=.05)
-
+# Scaling the dataset to managable size
 s = StandardScaler()
 s.fit(xtr)
 xtrn = s.transform(xtr)
 xten = s.transform(xte)
-
+# Encoding the probabilites to the corresponding character
 lab = LabelEncoder()
 l = map(chr, list(range(ord('0'), ord('9')+1))+list(range(ord('A'), ord('Z')+1))+list(range(ord('a'), ord('z')+1)))
 lab.fit(l)
 len(lab.classes_)
-
+# Defining the classifier and training
 mlp = MLPClassifier(solver='lbfgs', max_iter=1000, hidden_layer_sizes=(100))
 mlp.fit(xtrn, ytr)
 pkl.dump((mlp, s, lab), open('classifier.bin', 'wb'))
-
+# Testing for presicting accuracy ~ 73%
 sorted(mlp.predict_proba(xten)[0])
 np.sum(mlp.predict(xten)==yte)/float(len(yte))
 np.sum(mlp.predict(xtrn)==ytr), len(ytr)
