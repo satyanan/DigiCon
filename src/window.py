@@ -16,7 +16,6 @@ class Window(QtGui.QMainWindow):
         self.setGeometry(50, 50, 1024, 768)
         desktop = QtGui.QDesktopWidget()
         self.screenSize = desktop.availableGeometry(desktop.primaryScreen())
-        print self.screenSize
         self.setFixedSize(1024,768)
         self.setWindowTitle("DigiCon")
 
@@ -39,7 +38,7 @@ class Window(QtGui.QMainWindow):
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(openFile)
-        # self.statusBar().setSizeGripEnabled(False)
+        self.statusBar().setSizeGripEnabled(False)
 
         self.home()
 
@@ -54,6 +53,9 @@ class Window(QtGui.QMainWindow):
         self.open_btn.clicked.connect(lambda: self.file_open())
         self.open_btn.resize(120, 30)
         self.open_btn.move(452, 540)
+
+        self.image_btn = QtGui.QPushButton("", self)
+        self.image_btn.setVisible(False)
 
         self.show()
 
@@ -70,6 +72,19 @@ class Window(QtGui.QMainWindow):
         # cv.imshow("ff", img)
         # cv.waitKey(0)
 
+        # self.image_btn. (QtGui.QPixmap("../temp/output/input.jpg"))
+        # self.setCentralWidget(self.image_btn)
+        icon = QtGui.QIcon()
+        _inp = QtGui.QPixmap("../temp/output/input.jpg")
+        inp = _inp.scaled(250, 420, QtCore.Qt.KeepAspectRatio)
+        icon.addPixmap(inp)
+        self.image_btn.setIcon(icon)
+        self.image_btn.setIconSize(inp.rect().size())
+        self.image_btn.resize(250, 420)
+        # self.image_btn.resize(inp.rect().size())
+        self.image_btn.move(412,40)
+        self.image_btn.setVisible(True)
+        
         self.open_btn.setVisible(False)
         self.lbl.progressBar.setVisible(True)
         self.process_btn.setVisible(True)
@@ -141,6 +156,7 @@ class Window(QtGui.QMainWindow):
         # self.setFixedSize(width, height)
         self.rightKeyHandler()
         self.adjustSize()
+        self.image_btn.setVisible(False)
         self.process_btn.setVisible(False)
         self.lbl.progressBar.setVisible(False)
 
@@ -149,7 +165,6 @@ class Window(QtGui.QMainWindow):
 
         currentWidth, currentHeight, _ = self.imageSeq[self.currentSeq].shape
         newHeight = int(768*currentHeight/currentWidth)
-        print newHeight
         scaledImage = cv.resize(self.imageSeq[self.currentSeq], (newHeight , 768))
 
         prescription.cv.imwrite("../temp/disp.jpg",scaledImage)

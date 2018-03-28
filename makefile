@@ -23,13 +23,11 @@ help:
 	@echo " functest		to run only functionality tests"
 
 package:
-	tar -cvf ./digicon.tar.gz ./digicon
+	tar -cvf ./digicon.tar.gz ./src install.sh requirements.txt
 
 install:
 	rm -rf ./digicon
 	tar -xvf digicon.tar.gz -C ./
-	cp -a ./digicon/* ./
-	rm -rf digicon/*
 	mkdir -p ./temp/output/intermediateImgs
 	sudo chmod +x install.sh
 	sudo -E ./install.sh

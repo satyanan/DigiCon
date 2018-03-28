@@ -23,9 +23,9 @@ Req and dependencies
   Software dependiecies
     Ubuntu packages
     python packages
-Installation and usage
+Installation and build
   Installing using make
   Running the application
     User mode
     Debug mode
-    
+User guide

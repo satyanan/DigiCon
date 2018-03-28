@@ -115,7 +115,7 @@ class prescription():
         len(lab.classes_)
 
         mlp = pkl.load(open('../classifier/classifier.bin', 'rb'))
-        print (mlp.predict_proba(cvImgResized)[0])
+        # print (mlp.predict_proba(cvImgResized)[0])
         return True, 'i', 0.0
 
     def wordImgToNN(self, wordImg):
