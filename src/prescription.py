@@ -41,8 +41,8 @@ class prescription:
         for polygon in polygons:
             vertices = [(polygon[0][i], polygon[0][i + 1]) for i in
                         range(0, len(polygon[0]), 2)]
-            cv.fillPoly(bg_img, pts=np.int32([vertices]), color=(0,
-                        255, 0))
+            cv.fillPoly(bg_img, pts=np.int32([vertices]), color=(255,
+                        255, 255))
         cv.imwrite('../temp/bg_img.jpg', bg_img)
         self.c.drawImage('../temp/bg_img.jpg', 0, 0)
         for polygon in polygons:
@@ -53,8 +53,8 @@ class prescription:
             min_y = min(vertices, key=lambda t: t[1])[1]
             max_x = max(vertices, key=lambda t: t[0])[0]
             max_y = max(vertices, key=lambda t: t[1])[1]
-            cv.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255,
-                         0), cv.cv.CV_FILLED)
+            cv.rectangle(img, (min_x, min_y), (max_x, max_y), (255, 255,
+                         255), cv.cv.CV_FILLED)
             cv.putText(
                 img,
                 text,

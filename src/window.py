@@ -13,6 +13,7 @@ import cv2 as cv
 class Window(QtGui.QMainWindow):
 
     image_path = ''
+    # statusBar = None
     imageSeq = []
     currentSeq = -1
     processingComplete = False
@@ -41,9 +42,9 @@ class Window(QtGui.QMainWindow):
         openFile.setStatusTip('Open File')
         openFile.triggered.connect(self.file_open)
         # Setting up status bar
-        statusBar = QStatusBar()
-        self.setStatusBar(statusBar)
-        statusBar.showMessage('Press N for next/ P for previous')
+        self._statusBar = QStatusBar()
+        self.setStatusBar(self._statusBar)
+        self._statusBar.showMessage('Press N for next/ P for previous')
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(openFile)
@@ -93,7 +94,6 @@ class Window(QtGui.QMainWindow):
         self.image_btn.move(412, 40)
         self.image_btn.setVisible(True)
 
-        self.statusBar().setVisible(True)
         self.open_btn.setVisible(False)
         self.lbl.progressBar.setVisible(True)
         self.process_btn.setVisible(True)
@@ -149,6 +149,7 @@ class Window(QtGui.QMainWindow):
         self.processingComplete = True
         (_height, _width, _) = self.imageSeq[0].shape
         self.saveIntermediateImgs()
+        self.statusBar().setVisible(True)        
         self.rightKeyHandler()
         self.adjustSize()
         self.image_btn.setVisible(False)
@@ -156,6 +157,7 @@ class Window(QtGui.QMainWindow):
         self.lbl.progressBar.setVisible(False)
     # Display/GUI changes on event handled by this function
     def dispalyHandler(self):
+        self._statusBar.showMessage('Press N for next/ P for previous     Showing: '+ str(self.currentSeq+1) + '/6')
         setupLogging.logging.debug('display handler called')
 
         (currentWidth, currentHeight, _) = \
