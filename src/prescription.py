@@ -43,6 +43,7 @@ class prescription:
                         range(0, len(polygon[0]), 2)]
             cv.fillPoly(bg_img, pts=np.int32([vertices]), color=(255,
                         255, 255))
+        self.c.setPageSize((_width, height))
         cv.imwrite('../temp/bg_img.jpg', bg_img)
         self.c.drawImage('../temp/bg_img.jpg', 0, 0)
         for polygon in polygons:

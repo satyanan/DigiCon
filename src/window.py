@@ -77,7 +77,18 @@ class Window(QtGui.QMainWindow):
                 'Open File')
         bigImage = cv.imread(str(self.image_path))
         (height, width, _) = bigImage.shape
-        rescaledImg = cv.resize(bigImage, (1024 * width / height, 1024))
+        rescaledImg = bigImage # cv.resize(bigImage, (768, 768*height/width))
+        if height>3000 or width>3000:
+            if height > width:
+                rescaledImg = cv.resize(bigImage, (3000*width/height, 3000))
+                print 'height', rescaledImg.shape
+            if width > height:
+                rescaledImg = cv.resize(bigImage, (3000, 3000*height/width))
+                print 'width', rescaledImg.shape
+        else:
+            rescaledImg = bigImage
+            print 'none', rescaledImg.shape
+
         cv.imwrite('../temp/output/input.jpg', rescaledImg)
         self.image_path = QtCore.QString('../temp/output/input.jpg')
         self.prescriptionInstance = \
