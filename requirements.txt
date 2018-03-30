@@ -1,3 +1,5 @@
 reportlab
 qdarkstyle
 requests
+scikit-learn
+
