@@ -6,7 +6,7 @@ Word lists for case sensitive/insensitive lookups
 
 """
 
-from autocorrect.utils import words_from_archive
+from utils import words_from_archive
 
 # en_US_GB_CA is a superset of US, GB and CA
 # spellings (color, colour, etc). It contains
