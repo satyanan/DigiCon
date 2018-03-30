@@ -7,3 +7,4 @@ sudo apt-get update
 sudo -E apt-get install python-pip
 sudo -E apt-get install python-qt4
 sudo -E apt-get install python-scipy
+sudo -E apt-get install python-opencv
