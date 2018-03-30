@@ -151,18 +151,12 @@ def findWord(wordlist, flag):
 
         for word in wordlist:  # exact match with medicine
             result = spellMed(word.encode('utf-8'))
-
-            # print "exact", result, word
-
             if result is not -1:
                 if word in result:
                     return word.encode('utf-8')
 
         for word in wordlist:  # search in english
             result = spellEnglish(word.encode('utf-8'))
-
-            # print result, word
-
             if result is not -1:
                 if word in result:
                     return word.encode('utf-8')
@@ -181,19 +175,10 @@ def findWord(wordlist, flag):
 
 
 def correctWord(wordlist, flag):
-    # print "word is " + wordlist
     c = []
     c.append(wordlist)
-    # print "c is: "
-    # print c 
     a = findWord(c, 1)
-    # for word in a:
-    #     word = word.encode('utf-8')
-    # print "a "
-    # print a
     b = concatSlash(a)
-    # print 'b' +  ' ' +  b
-
     return b.encode('utf-8')
 
 
@@ -208,7 +193,6 @@ def correctSent(sentence, flag):
 def correctPage(sentenceList, flagList):
     page = []
     for sentence, flag in izip(sentenceList, flagList):
-        # print sentence, flag
         page.append(correctSent(sentence, flag))
 
     return page

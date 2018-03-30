@@ -32,6 +32,7 @@ class prescription:
     def __init__(self, imagePath):
         self.imagePath = imagePath
         self.c = canvas.Canvas('../temp/output/result.pdf')
+        self.pdf = canvas.Canvas('../temp/output/finalResult.pdf')
     # From the detrected words recreates the image with digital version of text.
     def azureCVDispProcessing(self, analysis):
         image_path = self.imagePath
@@ -41,6 +42,7 @@ class prescription:
         img_path = str(image_path)
         img = cv.imread(img_path)
         (height, _width, _channels) = img.shape
+        self.height = height
         bg_img = img
         for polygon in polygons:
             vertices = [(polygon[0][i], polygon[0][i + 1]) for i in
@@ -48,8 +50,10 @@ class prescription:
             cv.fillPoly(bg_img, pts=np.int32([vertices]), color=(255,
                         255, 255))
         self.c.setPageSize((_width, height))
+        self.pdf.setPageSize((_width, height))
         cv.imwrite('../temp/bg_img.jpg', bg_img)
         self.c.drawImage('../temp/bg_img.jpg', 0, 0)
+        self.pdf.drawImage('../temp/bg_img.jpg', 0, 0)
         for polygon in polygons:
             vertices = [(polygon[0][i], polygon[0][i + 1]) for i in
                         range(0, len(polygon[0]), 2)]
@@ -68,7 +72,7 @@ class prescription:
                 text,
                 (min_x, (min_y + max_y) / 2),
                 cv.FONT_HERSHEY_SIMPLEX,
-                (max_y-min_y)*0.02,
+                (max_y-min_y)*0.015,
                 (0, 0, 0),
                 fontThickness,
                 cv.CV_AA,
@@ -137,7 +141,7 @@ class prescription:
         self.wordListCorrected = correctPage(self.wordList, self.wordROIFlag)
         for i in range(len(self.wordListCorrected)):
             min_x, max_x, min_y, max_y = self.wordROI[i]
-            text = self.wordList[i]
+            text = self.wordListCorrected[i]
             cv.rectangle(img, (min_x, min_y), (max_x, max_y), (255, 255,
                          255), cv.cv.CV_FILLED)
             fontThickness = 2
@@ -148,11 +152,14 @@ class prescription:
                 text,
                 (min_x, (min_y + max_y) / 2),
                 cv.FONT_HERSHEY_SIMPLEX,
-                (max_y-min_y)*0.02,
+                (max_y-min_y)*0.015,
                 (0, 0, 0),
                 fontThickness,
                 cv.CV_AA,
                 )
+            self.pdf.setFont('Helvetica', 0.5*(max_y-min_y))
+            self.pdf.drawString(min_x, self.height - (min_y + max_y) / 2, text)
+        self.pdf.save()
         return img
     # Using trained deep neural network model to detect split characters
     def charToNN(self, charImg):
