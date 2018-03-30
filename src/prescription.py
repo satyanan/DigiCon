@@ -14,7 +14,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
 import pickle as pkl
 from utils.binary import *
-
+from autocorrect/__init__ import correctPage
+# import autocorrect
 '''
 The prescription calss holds the prescription image and has all mutators to it
 '''
@@ -24,6 +25,7 @@ class prescription:
     wordROI = []
     wordROIList = []
     correctedWordROIList = []
+    height = 0
 
     def __init__(self, imagePath):
         self.imagePath = imagePath
@@ -56,16 +58,20 @@ class prescription:
             max_y = max(vertices, key=lambda t: t[1])[1]
             cv.rectangle(img, (min_x, min_y), (max_x, max_y), (255, 255,
                          255), cv.cv.CV_FILLED)
+            fontThickness = 2
+            if  ((max_y-min_y)*0.02) < 0.5:
+                fontThickness = 1
             cv.putText(
                 img,
                 text,
-                vertices[0],
+                (min_x, (min_y + max_y) / 2),
                 cv.FONT_HERSHEY_SIMPLEX,
-                0.6,
+                (max_y-min_y)*0.02,
                 (0, 0, 0),
-                1,
+                fontThickness,
                 cv.CV_AA,
                 )
+            self.c.setFont('Helvetica', 0.5*(max_y-min_y))
             self.c.drawString(min_x, height - (min_y + max_y) / 2, text)
         cvImg = cv.cvtColor(img, cv.cv.CV_BGR2RGB)  # for Qt display
         setupLogging.logging.debug('Image with ROI saved')
@@ -126,6 +132,25 @@ class prescription:
         return img
 
     def imageWordSpellcorrection(self, img):
+        self.wordListCorrected = correctPage(self.wordList, self.wordROIFlag)
+        for i in range(len(wordListCorrected)):
+            min_x, max_x, min_y, max_y = self.wordROI[i]
+            text = self.wordList[i]
+            cv.rectangle(img, (min_x, min_y), (max_x, max_y), (255, 255,
+                         255), cv.cv.CV_FILLED)
+            fontThickness = 2
+            if  ((max_y-min_y)*0.02) < 0.5:
+                fontThickness = 1
+            cv.putText(
+                img,
+                text,
+                (min_x, (min_y + max_y) / 2),
+                cv.FONT_HERSHEY_SIMPLEX,
+                (max_y-min_y)*0.02,
+                (0, 0, 0),
+                fontThickness,
+                cv.CV_AA,
+                )
         return img
     # Using trained deep neural network model to detect split characters
     def charToNN(self, charImg):
@@ -235,6 +260,8 @@ class prescription:
         pass
     # Takes roi pilygons and makes a list of ROIs and it's bounding rectangles for further processing
     def imageWordToList(self, bImg):
+        self.wordROIFlag = []
+        self.wordList = []
         if len(bImg.shape) == 2:
             binarisedImg = cv.cvtColor(bImg, cv.COLOR_GRAY2RGB)
         else:
@@ -244,11 +271,17 @@ class prescription:
             vertices = [(polygon[0][i], polygon[0][i + 1]) for i in
                         range(0, len(polygon[0]), 2)]
             _text = polygon[1]
+            self.wordList.append(_text)
             min_x = min(vertices, key=lambda t: t[0])[0]
             min_y = min(vertices, key=lambda t: t[1])[1]
             max_x = max(vertices, key=lambda t: t[0])[0]
             max_y = max(vertices, key=lambda t: t[1])[1]
             self.wordROI.append((min_x, max_x, min_y, max_y))
+            mid = (min_y+max_y)/2
+            if(mid< self.height):
+                self.wordROIFlag.append(0)
+            else
+                self.wordROIFlag.append(1)
             roi = binarisedImg[min_y:max_y, min_x:max_x]
             self.wordROIList.append(roi)
         return self.wordROIList

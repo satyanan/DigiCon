@@ -88,11 +88,12 @@ class Window(QtGui.QMainWindow):
         else:
             rescaledImg = bigImage
             print 'none', rescaledImg.shape
-
+        (height, width, _) = rescaledImg.shape
         cv.imwrite('../temp/output/input.jpg', rescaledImg)
         self.image_path = QtCore.QString('../temp/output/input.jpg')
         self.prescriptionInstance = \
             prescription.prescription(str(self.image_path))
+        self.prescriptionInstance.height = height
         setupLogging.logging.debug('Image path is' + self.image_path)
         # Triggering some GUI changes on file opening
         icon = QtGui.QIcon()

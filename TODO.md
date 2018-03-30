@@ -38,3 +38,6 @@ Installation and build
 ##### Demo
  Video
  Presentation
+
+####Last minute
+* Remove my name from images
