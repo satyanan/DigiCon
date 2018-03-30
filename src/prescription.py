@@ -137,7 +137,9 @@ class prescription:
     def imageNNWordDetection(self, img):
         return img
 
-    def imageWordSpellcorrection(self, img):
+    def imageWordSpellcorrection(self):
+        img_path = str(self.imagePath)
+        img = cv.imread(img_path)
         self.wordListCorrected = correctPage(self.wordList, self.wordROIFlag)
         for i in range(len(self.wordListCorrected)):
             min_x, max_x, min_y, max_y = self.wordROI[i]
@@ -149,7 +151,7 @@ class prescription:
                 fontThickness = 1
             cv.putText(
                 img,
-                text,
+                text+ '{' + str(self.wordROIFlag[i]) + '}',
                 (min_x, (min_y + max_y) / 2),
                 cv.FONT_HERSHEY_SIMPLEX,
                 (max_y-min_y)*0.015,
@@ -158,7 +160,7 @@ class prescription:
                 cv.CV_AA,
                 )
             self.pdf.setFont('Helvetica', 0.5*(max_y-min_y))
-            self.pdf.drawString(min_x, self.height - (min_y + max_y) / 2, text)
+            self.pdf.drawString(min_x, self.height - (min_y + max_y) / 2, text )
         self.pdf.save()
         return img
     # Using trained deep neural network model to detect split characters
@@ -287,7 +289,9 @@ class prescription:
             max_y = max(vertices, key=lambda t: t[1])[1]
             self.wordROI.append((min_x, max_x, min_y, max_y))
             mid = (min_y+max_y)/2
-            if(mid< self.height):
+            if(mid < 0.3*self.height):
+                self.wordROIFlag.append(-1)
+            elif(mid< 0.56*self.height):
                 self.wordROIFlag.append(0)
             else:
                 self.wordROIFlag.append(1)

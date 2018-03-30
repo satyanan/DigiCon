@@ -175,6 +175,8 @@ def findWord(wordlist, flag):
 
 
 def correctWord(wordlist, flag):
+    if len(wordlist) < 3 or flag == -1:
+        return wordlist
     c = []
     c.append(wordlist)
     a = findWord(c, 1)

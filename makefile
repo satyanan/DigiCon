@@ -31,7 +31,7 @@ install:
 	mkdir -p ./temp/output/intermediateImgs
 	sudo chmod +x install.sh
 	sudo -E ./install.sh
-	pip install -r requirements.txt
+	sudo -E pip install -r requirements.txt
 	
 build: install
 

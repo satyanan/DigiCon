@@ -146,13 +146,13 @@ class Window(QtGui.QMainWindow):
         self.processingStepsHandler(binarisedImg)
         (azuredImg, _azureAnalysis) = \
             self.prescriptionInstance.imageAzureHandwriting()
-
+       
         _wordROIList = \
             self.prescriptionInstance.imageWordToList(binarisedImg)
         wordROIDetectedImg = \
             self.prescriptionInstance.imageWordROIDetection(binarisedImg)
         wordSpellcorrectedImg = \
-            self.prescriptionInstance.imageWordSpellcorrection(azuredImg)
+            self.prescriptionInstance.imageWordSpellcorrection()
         self.processingStepsHandler(wordROIDetectedImg)
         self.processingStepsHandler(azuredImg)
         self.prescriptionInstance.wordCorrection()
