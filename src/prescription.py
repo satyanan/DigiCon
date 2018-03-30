@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import time
+import sys
 import requests
 import json
 import cv2 as cv
@@ -14,7 +15,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
 import pickle as pkl
 from utils.binary import *
-from autocorrect/__init__ import correctPage
+sys.path.insert(0, '../autocorrect/')
+from autocorrect import correctPage
 # import autocorrect
 '''
 The prescription calss holds the prescription image and has all mutators to it
@@ -133,7 +135,7 @@ class prescription:
 
     def imageWordSpellcorrection(self, img):
         self.wordListCorrected = correctPage(self.wordList, self.wordROIFlag)
-        for i in range(len(wordListCorrected)):
+        for i in range(len(self.wordListCorrected)):
             min_x, max_x, min_y, max_y = self.wordROI[i]
             text = self.wordList[i]
             cv.rectangle(img, (min_x, min_y), (max_x, max_y), (255, 255,
@@ -280,7 +282,7 @@ class prescription:
             mid = (min_y+max_y)/2
             if(mid< self.height):
                 self.wordROIFlag.append(0)
-            else
+            else:
                 self.wordROIFlag.append(1)
             roi = binarisedImg[min_y:max_y, min_x:max_x]
             self.wordROIList.append(roi)

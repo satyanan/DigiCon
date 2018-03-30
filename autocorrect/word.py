@@ -3,7 +3,7 @@
 Word based methods and functions
 
 """
-from utils import concat
+from _utils import concat
 from nlp_parser import NLP_WORDS, MED_WORDS
 from word_lists import LOWERCASE, MIXED_CASE
 from word_lists import LOWERED, CASE_MAPPED, MEDICINE, SYMPTOMS, ENGLISH
