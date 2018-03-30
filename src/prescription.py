@@ -74,7 +74,7 @@ class prescription:
                 cv.FONT_HERSHEY_SIMPLEX,
                 (max_y-min_y)*0.015,
                 (0, 0, 0),
-                fontThickness,
+                1,
                 cv.CV_AA,
                 )
             self.c.setFont('Helvetica', 0.5*(max_y-min_y))
@@ -86,7 +86,7 @@ class prescription:
     # Handwriting text detection using state of the art method. 
     def imageAzureHandwriting(self):
         image_path = self.imagePath
-        subscription_key = '00c800bde4fe46b7b36fc42aba617e6b'
+        subscription_key = 'e7a1767260db447ca17ab7815dd7a3c9'
         assert subscription_key
         vision_base_url = \
             'https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/'
@@ -156,7 +156,7 @@ class prescription:
                 cv.FONT_HERSHEY_SIMPLEX,
                 (max_y-min_y)*0.015,
                 (0, 0, 0),
-                fontThickness,
+                1,
                 cv.CV_AA,
                 )
             self.pdf.setFont('Helvetica', 0.5*(max_y-min_y))
