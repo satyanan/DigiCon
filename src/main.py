@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
 import setupLogging
 import window
 
