@@ -5,7 +5,7 @@ NLP parser
 
 """
 
-from autocorrect.utils import words_from_archive, zero_default_dict
+from utils import words_from_archive, zero_default_dict
 
 
 def parse(lang_sample):

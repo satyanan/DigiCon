@@ -3,10 +3,10 @@
 Word based methods and functions
 
 """
-from autocorrect.utils import concat
-from autocorrect.nlp_parser import NLP_WORDS, MED_WORDS
-from autocorrect.word_lists import LOWERCASE, MIXED_CASE
-from autocorrect.word_lists import LOWERED, CASE_MAPPED, MEDICINE, SYMPTOMS, ENGLISH
+from utils import concat
+from nlp_parser import NLP_WORDS, MED_WORDS
+from word_lists import LOWERCASE, MIXED_CASE
+from word_lists import LOWERED, CASE_MAPPED, MEDICINE, SYMPTOMS, ENGLISH
 
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 KNOWN_WORDS = LOWERCASE | LOWERED | NLP_WORDS

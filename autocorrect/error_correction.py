@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # tuple (probable_word_list, flag = 0 if symptom, flag = 1 if medicine)
 
-from autocorrect import spellMed, spellSymp, spellEnglish
+from __init__ import spellMed, spellSymp, spellEnglish
 from itertools import chain
 
 

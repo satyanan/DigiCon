@@ -4,9 +4,9 @@
 Spell function
 
 """
-
-from autocorrect.nlp_parser import NLP_COUNTS, MED_COUNTS
-from autocorrect.word import Word, common, exact, known, get_case, \
+from itertools import chain
+from nlp_parser import NLP_COUNTS, MED_COUNTS
+from word import Word, common, exact, known, get_case, \
     isMedicine, isSymptom, isEnglish
 
 
@@ -104,5 +104,86 @@ def spellEnglish(word):
         return -1
 
 
+
+
+def concatSlash(*args):
+    """reversed('th'), 'e' => 'hte'"""
+
+    try:
+        return '/'.join(args)
+    except TypeError:
+        return '/'.join(chain.from_iterable(args))
+
+
+def findWord(wordlist, flag):
+    if flag is 0:
+        for word in wordlist:
+            result = spellSymp(word.encode('utf-8'))
+
+            # print result, word
+
+            if result is not -1:
+                if word in result:
+                    return word.encode('utf-8')
+
+        for word in wordlist:
+            result = spellEnglish(word.encode('utf-8'))
+
+            # print result, word
+
+            if result is not -1:
+                if word in result:
+                    return word.encode('utf-8')
+
+        for word in wordlist:
+            result = spellSymp(word.encode('utf-8'))
+            if result is not -1:
+                return result
+
+        for word in wordlist:
+            result = spellEnglish(word.encode('utf-8'))
+            if result is not -1:
+                return result
+
+        return wordlist[0].encode('utf-8')
+    elif flag is 1:
+
+        for word in wordlist:  # exact match with medicine
+            result = spellMed(word.encode('utf-8'))
+
+            # print "exact", result, word
+
+            if result is not -1:
+                if word in result:
+                    return word.encode('utf-8')
+
+        for word in wordlist:  # search in english
+            result = spellEnglish(word.encode('utf-8'))
+
+            # print result, word
+
+            if result is not -1:
+                if word in result:
+                    return word.encode('utf-8')
+
+        for word in wordlist:  # match with medicine
+            result = spellMed(word.encode('utf-8'))
+            if result is not -1:
+                return result
+
+        for word in wordlist:
+            result = spellEnglish(word.encode('utf-8'))
+            if result is not -1:
+                return result
+
+        return wordlist[0].encode('utf-8')
+
+
+def correctWord(wordlist, flag):
+    a = findWord(wordlist, flag)
+    for word in a:
+        word = word.encode('utf-8')
+    b = concatSlash(a)
+    return b.encode('utf-8')
 
 			
