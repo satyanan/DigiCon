@@ -5,6 +5,7 @@ Spell function
 
 """
 from itertools import chain
+from itertools import izip
 from nlp_parser import NLP_COUNTS, MED_COUNTS
 from word import Word, common, exact, known, get_case, \
     isMedicine, isSymptom, isEnglish
@@ -180,10 +181,34 @@ def findWord(wordlist, flag):
 
 
 def correctWord(wordlist, flag):
-    a = findWord(wordlist, flag)
-    for word in a:
-        word = word.encode('utf-8')
+    # print "word is " + wordlist
+    c = []
+    c.append(wordlist)
+    # print "c is: "
+    # print c 
+    a = findWord(c, 1)
+    # for word in a:
+    #     word = word.encode('utf-8')
+    # print "a "
+    # print a
     b = concatSlash(a)
+    # print 'b' +  ' ' +  b
+
     return b.encode('utf-8')
 
-			
+
+def correctSent(sentence, flag):
+    wordlist = sentence.split()
+    result = ''
+    for word in wordlist:
+        result += correctWord(word, flag) + ' '
+
+    return result
+
+def correctPage(sentenceList, flagList):
+    page = []
+    for sentence, flag in izip(sentenceList, flagList):
+        # print sentence, flag
+        page.append(correctSent(sentence, flag))
+
+    return page
